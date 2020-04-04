@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[])
 {
-    parameters_t *parameters;
+    Parameters *parameters;
 
     parameters = ParseParameters(argc, argv);
 

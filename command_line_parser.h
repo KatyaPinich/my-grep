@@ -5,15 +5,15 @@ typedef enum
 {
     INPUT_FILE,
     INPUT_STDIN
-} INPUT_MODE;
+} InputMode;
 
-typedef struct parameters
+typedef struct Parameters
 {
-    INPUT_MODE inputMode;
+    InputMode inputMode;
     char* filename;
-} parameters_t;
+} Parameters;
 
-parameters_t* ParseParameters(int argc, char *argv[]);
-void FreeParameters(parameters_t *parameters);
+Parameters* ParseParameters(int argc, char *argv[]);
+void FreeParameters(Parameters *parameters);
 
 #endif

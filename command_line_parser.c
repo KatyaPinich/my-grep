@@ -5,11 +5,11 @@
 
 #include "string_tools.h"
 
-parameters_t* ParseParameters(int argc, char *argv[])
+Parameters* ParseParameters(int argc, char *argv[])
 {
-    parameters_t *parameters;
+    Parameters *parameters;
 
-    parameters = (parameters_t*)malloc(sizeof(parameters_t));
+    parameters = (Parameters*)malloc(sizeof(Parameters));
     if (parameters == NULL)
         return parameters; // TODO: Maybe exit with a warning memory allocation failed
 
@@ -39,7 +39,7 @@ parameters_t* ParseParameters(int argc, char *argv[])
     return parameters;
 }
 
-void FreeParameters(parameters_t *parameters)
+void FreeParameters(Parameters *parameters)
 {
     if (parameters->inputMode == INPUT_FILE && parameters->filename != NULL)
     {
