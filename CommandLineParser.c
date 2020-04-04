@@ -1,6 +1,8 @@
+#include "CommandLineParser.h"
+
 #include <stdlib.h>
 #include <stdio.h>
-#include "CommandLineParser.h"
+
 #include "StringTools.h"
 
 parameters_t* ParseParameters(int argc, char *argv[])

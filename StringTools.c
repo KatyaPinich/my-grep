@@ -1,6 +1,8 @@
+#include "StringTools.h"
+
 #include <stdlib.h>
 #include <string.h>
-#include "StringTools.h"
+
 
 char* CopyString(const char *sourceString)
 {
