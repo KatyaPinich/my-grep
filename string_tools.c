@@ -1,4 +1,4 @@
-#include "StringTools.h"
+#include "string_tools.h"
 
 #include <stdlib.h>
 #include <string.h>

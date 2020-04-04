@@ -1,9 +1,9 @@
-#include "CommandLineParser.h"
+#include "command_line_parser.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "StringTools.h"
+#include "string_tools.h"
 
 parameters_t* ParseParameters(int argc, char *argv[])
 {
