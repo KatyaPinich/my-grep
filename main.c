@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include "StringTools.h"
 
 typedef enum
 {
@@ -15,7 +15,6 @@ typedef struct parameters
 } parameters_t;
 
 parameters_t* ParseParameters(int argc, char *argv[]);
-char* CopyString(const char *sourceString);
 void FreeParameters(parameters_t *parameters);
 
 int main(int argc, char *argv[])
@@ -23,6 +22,8 @@ int main(int argc, char *argv[])
     parameters_t *parameters;
 
     parameters = ParseParameters(argc, argv);
+
+    printf("\n");
 
     return 0;
 }
@@ -71,16 +72,4 @@ void FreeParameters(parameters_t *parameters)
     free(parameters);
 }
 
-char* CopyString(const char *sourceString)
-{
-    char *destinationString;
-    int sourceStringLength;
 
-    sourceStringLength = strlen(sourceString) + 1;
-    destinationString = (char*)malloc(sizeof(char) * sourceStringLength);
-    if (destinationString == NULL)
-        return NULL;
-
-    strncpy(destinationString, sourceString, sourceStringLength);
-    return destinationString;
-}
