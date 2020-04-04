@@ -1,6 +1,6 @@
 #ifndef STRING_TOOLS_H
 #define STRING_TOOLS_H
 
-char* CopyString(const char *sourceString);
+char* CopyString(const char *source_string);
 
 #endif

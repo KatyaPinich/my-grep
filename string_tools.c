@@ -4,16 +4,16 @@
 #include <string.h>
 
 
-char* CopyString(const char *sourceString)
+char* CopyString(const char *source_string)
 {
-    char *destinationString;
-    int sourceStringLength;
+    char *destination_string;
+    int source_string_length;
 
-    sourceStringLength = strlen(sourceString) + 1;
-    destinationString = (char*)malloc(sizeof(char) * sourceStringLength);
-    if (destinationString == NULL)
+    source_string_length = strlen(source_string) + 1;
+    destination_string = (char*)malloc(sizeof(char) * source_string_length);
+    if (destination_string == NULL)
         return NULL;
 
-    strncpy(destinationString, sourceString, sourceStringLength);
-    return destinationString;
+    strncpy(destination_string, source_string, source_string_length);
+    return destination_string;
 }
