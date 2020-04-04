@@ -41,6 +41,9 @@ void Grep(Parameters *parameters)
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
     }
+
+    if (parameters->inputMode == INPUT_FILE)
+        fclose(input_stream);
 }
 
 FILE* GetInputStream(Parameters *parameters)
