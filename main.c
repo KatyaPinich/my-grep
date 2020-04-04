@@ -7,9 +7,10 @@
 #include "command_line_parser.h"
 
 void Grep(Parameters *parameters);
-char* ReadLineFromFile(const char *filename, int start_from);
-char* ReadLine(Parameters *parameters, int read_from);
+char* ReadLine(FILE* input_stream);
 bool IsMatchInLine(const char *expression, const char *line);
+FILE* GetInputStream(Parameters *parameters);
+FILE* OpenFile(const char *filename);
 
 int main(int argc, char *argv[])
 {
@@ -23,39 +24,40 @@ int main(int argc, char *argv[])
 
 void Grep(Parameters *parameters)
 {
+    FILE* input_stream;
     char *line;
     int bytes_read = 0;
 
-    line = ReadLine(parameters, bytes_read);
+    input_stream = GetInputStream(parameters);
+
+    line = ReadLine(input_stream);
     while (line != NULL)
     {
-        //printf("Read line: %s", line);
         if (IsMatchInLine(parameters->expression, line))
         {
             printf("%s", line);
         }
 
         bytes_read += strlen(line);
-        line = ReadLine(parameters, bytes_read);
+        line = ReadLine(input_stream);
     }
 }
 
-char* ReadLine(Parameters *parameters, int read_from)
+FILE* GetInputStream(Parameters *parameters)
 {
     if (parameters->inputMode == INPUT_FILE)
     {
-        return ReadLineFromFile(parameters->filename, read_from);
+        return OpenFile(parameters->filename);
     }
-
-    return NULL;
+    else
+    {
+        return stdin;
+    }
 }
 
-char* ReadLineFromFile(const char *filename, int start_from)
+FILE* OpenFile(const char *filename)
 {
     FILE *file;
-    char *line = NULL;
-    size_t line_length = 0;
-    ssize_t bytes_read;
 
     file = fopen(filename, "r");
     if (file == NULL)
@@ -64,14 +66,20 @@ char* ReadLineFromFile(const char *filename, int start_from)
         exit(EXIT_FAILURE);
     }
 
-    fseek(file, start_from, SEEK_SET);
-    bytes_read = getline(&line, &line_length, file);
+    return file;
+}
+
+char* ReadLine(FILE* input_stream)
+{
+    char *line = NULL;
+    size_t line_length = 0;
+    ssize_t bytes_read;
+
+    bytes_read = getline(&line, &line_length, input_stream);
     if (bytes_read == -1)
     {
         line = NULL;
     }
-
-    fclose(file);
 
     return line;
 }
