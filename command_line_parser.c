@@ -16,11 +16,13 @@ Parameters* ParseParameters(int argc, char *argv[])
     if (argc == 2)
     {
         // We have only an expression and get the input from stdin
+        parameters->expression = CopyString(argv[1]);
         parameters->inputMode = INPUT_STDIN;
     }
     else if (argc == 3)
     {
         // We have an expression and a file
+        parameters->expression = CopyString(argv[1]);
         parameters->inputMode = INPUT_FILE;
         parameters->filename = CopyString(argv[2]);
         if (parameters->filename == NULL)
@@ -41,6 +43,11 @@ Parameters* ParseParameters(int argc, char *argv[])
 
 void FreeParameters(Parameters *parameters)
 {
+    if (parameters->expression != NULL)
+    {
+        free(parameters->expression);
+    }
+
     if (parameters->inputMode == INPUT_FILE && parameters->filename != NULL)
     {
         free(parameters->filename);

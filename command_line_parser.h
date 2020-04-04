@@ -9,8 +9,9 @@ typedef enum
 
 typedef struct Parameters
 {
+    char *expression;
     InputMode inputMode;
-    char* filename;
+    char *filename;
 } Parameters;
 
 Parameters* ParseParameters(int argc, char *argv[]);
