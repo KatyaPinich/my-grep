@@ -3,4 +3,4 @@ project(my_grep C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(my_grep main.c StringTools.c StringTools.h)
+add_executable(my_grep main.c StringTools.c StringTools.h CommandLineParser.c CommandLineParser.h)
