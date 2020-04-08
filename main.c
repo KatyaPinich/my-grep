@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
 
     parameters = ParseParameters(argc, argv);
     Grep(parameters);
+    FreeParameters(parameters);
 
     return 0;
 }
