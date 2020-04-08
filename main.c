@@ -40,11 +40,14 @@ void Grep(Parameters *parameters)
         }
 
         bytes_read += strlen(line);
+        free(line);
         line = ReadLine(input_stream);
     }
 
     if (parameters->inputMode == INPUT_FILE)
         fclose(input_stream);
+
+    free(line);
 }
 
 FILE* GetInputStream(Parameters *parameters)
@@ -82,6 +85,7 @@ char* ReadLine(FILE* input_stream)
     bytes_read = getline(&line, &line_length, input_stream);
     if (bytes_read == -1)
     {
+        free(line);
         line = NULL;
     }
 
