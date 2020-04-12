@@ -5,12 +5,14 @@
 #include <stdlib.h>
 
 #include "command_line_parser.h"
+#include "string_tools.h"
 
 void Grep(Parameters *parameters);
 char* ReadLine(FILE* input_stream);
-bool IsMatchInLine(const char *expression, const char *line);
+bool IsMatchInLine(Parameters *parameters, const char *line);
 FILE* GetInputStream(Parameters *parameters);
 FILE* OpenFile(const char *filename);
+void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int bytesRead);
 
 int main(int argc, char *argv[])
 {
@@ -27,21 +29,22 @@ void Grep(Parameters *parameters)
 {
     FILE* input_stream;
     char *line;
-    int bytes_read = 0;
+    int bytes_read = 0, lineNumber = 1;
 
     input_stream = GetInputStream(parameters);
 
     line = ReadLine(input_stream);
     while (line != NULL)
     {
-        if (IsMatchInLine(parameters->expression, line))
+        if (IsMatchInLine(parameters, line))
         {
-            printf("%s", line);
+            ReportLineMatch(lineNumber, line, parameters, bytes_read);
         }
 
         bytes_read += strlen(line);
         free(line);
         line = ReadLine(input_stream);
+        lineNumber++;
     }
 
     if (parameters->inputMode == INPUT_FILE)
@@ -92,10 +95,55 @@ char* ReadLine(FILE* input_stream)
     return line;
 }
 
-bool IsMatchInLine(const char *expression, const char *line)
+bool IsMatchInLine(Parameters *parameters, const char *line)
 {
-    return (strncmp(expression, line, strlen(expression)) == 0);
+    bool match;
+    char *lowercaseExpression = NULL, *lowercaseLine = NULL;
+
+    if(parameters->iParameter)
+    {
+        lowercaseExpression = ToLowercaseString(parameters->expression);
+        lowercaseLine = ToLowercaseString(line);
+        match = strncmp(lowercaseExpression, lowercaseLine, strlen(parameters->expression)) == 0;
+        free(lowercaseExpression);
+        free(lowercaseLine);
+    }
+    else
+    {
+        match = strncmp(parameters->expression, line, strlen(parameters->expression)) == 0;
+    }
+
+    if(parameters->vParameter)
+    {
+        match = !match;
+    }
+    return match;
 }
 
-
+void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int bytesRead)
+{
+    if (parameters->vParameter)
+    {
+        printf("%d\n", lineNumber);
+    }
+    else if (parameters->nParameter)
+    {
+        if(parameters->bParameter)
+        {
+            printf("%d:%d:%s", lineNumber, bytesRead, line);
+        }
+        else
+        {
+            printf("%d:%s", lineNumber, line);
+        }
+    }
+    else if (parameters->bParameter)
+    {
+        printf("%d:%s", bytesRead, line);
+    }
+    else
+    {
+        printf("%s", line);
+    }
+}
 
