@@ -13,6 +13,7 @@ bool IsMatchInLine(Parameters *parameters, const char *line);
 FILE* GetInputStream(Parameters *parameters);
 FILE* OpenFile(const char *filename);
 void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int bytesRead);
+bool CheckIfLineMatch(bool xParameter, char *expression, const char *line);
 
 int main(int argc, char *argv[])
 {
@@ -100,35 +101,47 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
     bool match;
     char *lowercaseExpression = NULL, *lowercaseLine = NULL;
 
-    if(parameters->iParameter)
+    if(parameters->iParameter) //dont mind uppercase/lowercase expression
     {
         lowercaseExpression = ToLowercaseString(parameters->expression);
         lowercaseLine = ToLowercaseString(line);
-        match = strncmp(lowercaseExpression, lowercaseLine, strlen(parameters->expression)) == 0;
+        match = CheckIfLineMatch(parameters->xParameter, lowercaseExpression, lowercaseLine);
         free(lowercaseExpression);
         free(lowercaseLine);
     }
     else
     {
-        match = strncmp(parameters->expression, line, strlen(parameters->expression)) == 0;
+        match = CheckIfLineMatch(parameters->xParameter, parameters->expression, line);
     }
 
-    if(parameters->vParameter)
+    if(parameters->vParameter) //print only lines which dont include the expression
     {
         match = !match;
     }
     return match;
 }
 
+bool CheckIfLineMatch(bool xParameter, char *expression, const char *line)
+{
+    if (xParameter) //find exact lines only
+    {
+        return strcmp(expression, line) == 0;
+    }
+    else
+    {
+        return strstr(line, expression) != NULL;
+    }
+}
+
 void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int bytesRead)
 {
-    if (parameters->vParameter)
+    if (parameters->cParameter) //print only line numbers
     {
         printf("%d\n", lineNumber);
     }
-    else if (parameters->nParameter)
+    else if (parameters->nParameter) //print line number before every line
     {
-        if(parameters->bParameter)
+        if(parameters->bParameter) //print byte offset before line
         {
             printf("%d:%d:%s", lineNumber, bytesRead, line);
         }
@@ -137,7 +150,7 @@ void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int byt
             printf("%d:%s", lineNumber, line);
         }
     }
-    else if (parameters->bParameter)
+    else if (parameters->bParameter) //print byte offset before line
     {
         printf("%d:%s", bytesRead, line);
     }

@@ -36,3 +36,4 @@ char* ToLowercaseString(const char *source_string)
 
     return destination_string;
 }
+
