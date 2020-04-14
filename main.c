@@ -13,7 +13,6 @@ bool IsMatchInLine(Parameters *parameters, const char *line);
 FILE* GetInputStream(Parameters *parameters);
 FILE* OpenFile(const char *filename);
 void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int bytesRead);
-bool CheckIfLineMatch(bool xParameter, char *expression, const char *line);
 
 int main(int argc, char *argv[])
 {
@@ -99,19 +98,28 @@ char* ReadLine(FILE* input_stream)
 bool IsMatchInLine(Parameters *parameters, const char *line)
 {
     bool match;
-    char *lowercaseExpression = NULL, *lowercaseLine = NULL;
 
     if(parameters->iParameter) //dont mind uppercase/lowercase expression
     {
-        lowercaseExpression = ToLowercaseString(parameters->expression);
-        lowercaseLine = ToLowercaseString(line);
-        match = CheckIfLineMatch(parameters->xParameter, lowercaseExpression, lowercaseLine);
-        free(lowercaseExpression);
-        free(lowercaseLine);
+        if (parameters->xParameter) //find exact lines only
+        {
+            match = strcasecmp(parameters->expression, line) == 0;
+        }
+        else
+        {
+            match = strcasestr(line, parameters->expression) != NULL;
+        }
     }
     else
     {
-        match = CheckIfLineMatch(parameters->xParameter, parameters->expression, line);
+        if (parameters->xParameter) //find exact lines only
+        {
+            match = strcmp(parameters->expression, line) == 0;
+        }
+        else
+        {
+            match = strstr(line, parameters->expression) != NULL;
+        }
     }
 
     if(parameters->vParameter) //print only lines which dont include the expression
@@ -119,18 +127,6 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
         match = !match;
     }
     return match;
-}
-
-bool CheckIfLineMatch(bool xParameter, char *expression, const char *line)
-{
-    if (xParameter) //find exact lines only
-    {
-        return strcmp(expression, line) == 0;
-    }
-    else
-    {
-        return strstr(line, expression) != NULL;
-    }
 }
 
 void ReportLineMatch(int lineNumber, char *line, Parameters *parameters, int bytesRead)
