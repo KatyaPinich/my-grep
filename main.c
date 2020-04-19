@@ -13,7 +13,7 @@ bool IsMatchInLine(Parameters *parameters, const char *line);
 FILE* GetInputStream(Parameters *parameters);
 FILE* OpenFile(const char *filename);
 void ReportLineMatch(struct Node* line, Parameters *parameters);
-void FillLinesStruct(Parameters *parameters, struct Node* lines, FILE* input_stream);
+void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
 
 int main(int argc, char *argv[])
 {
@@ -33,9 +33,13 @@ void Grep(Parameters *parameters)
 
     input_stream = GetInputStream(parameters);
 
-    FillLinesStruct(parameters, lines, input_stream);
+    FillLinesStruct(parameters, &lines, input_stream);
 
     line = lines;
+    if (line == NULL)
+    {
+        ReportLineMatch(line, parameters);
+    }
     while (line != NULL)
     {
         ReportLineMatch(line, parameters);
@@ -48,7 +52,7 @@ void Grep(Parameters *parameters)
     FreeLinkedList(&lines);
 }
 
-void FillLinesStruct(Parameters *parameters, struct Node* lines, FILE* input_stream)
+void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream)
 {
     int bytes_read = 0, lineNumber = 1;
     bool valid;
@@ -58,7 +62,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* lines, FILE* input_str
     while (line != NULL)
     {
         valid = IsMatchInLine(parameters, line);
-        AddToEndOfLinkedList(&lines, line, valid, bytes_read, lineNumber);
+        AddToEndOfLinkedList(lines, line, valid, bytes_read, lineNumber);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
         lineNumber++;
@@ -143,28 +147,29 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
 
 void ReportLineMatch(struct Node* line, Parameters *parameters)
 {
-    if (parameters->cParameter) //print only line numbers
+    if (line == NULL)
     {
-        printf("%d\n", line->lineNumber);
+        return;
     }
-    else if (parameters->nParameter) //print line number before every line
+    else if (line->valid)
     {
-        if(parameters->bParameter) //print byte offset before line
+        if (parameters->cParameter) //print only line numbers
         {
-            printf("%d:%d:%s", line->lineNumber, line->byteOffset, line->line);
-        }
-        else
+            printf("%d\n", line->lineNumber);
+        } else if (parameters->nParameter) //print line number before every line
         {
-            printf("%d:%s", line->lineNumber, line->line);
+            if (parameters->bParameter) //print byte offset before line
+            {
+                printf("%d:%d:%s", line->lineNumber, line->byteOffset, line->line);
+            } else {
+                printf("%d:%s", line->lineNumber, line->line);
+            }
+        } else if (parameters->bParameter) //print byte offset before line
+        {
+            printf("%d:%s", line->byteOffset, line->line);
+        } else {
+            printf("%s", line->line);
         }
-    }
-    else if (parameters->bParameter) //print byte offset before line
-    {
-        printf("%d:%s", line->byteOffset, line->line);
-    }
-    else
-    {
-        printf("%s", line->line);
     }
 }
 
