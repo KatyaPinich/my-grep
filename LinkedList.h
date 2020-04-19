@@ -10,6 +10,7 @@ struct Node
     bool valid;
     int byteOffset;
     int lineNumber;
+    bool printed;
     struct Node *next;
 };
 

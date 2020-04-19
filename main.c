@@ -153,6 +153,7 @@ void ReportLineMatch(struct Node* line, Parameters *parameters)
     }
     else if (line->valid)
     {
+        line->printed = true;
         if (parameters->cParameter) //print only line numbers
         {
             printf("%d\n", line->lineNumber);

@@ -64,6 +64,7 @@ struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber)
     new_node->byteOffset = byteOffset;
     new_node->lineNumber = lineNumber;
     new_node->valid = valid;
+    new_node->printed = false;
     new_node->next = NULL;
 
     return new_node;
