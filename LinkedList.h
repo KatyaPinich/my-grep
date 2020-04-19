@@ -14,7 +14,8 @@ struct Node
     struct Node *next;
 };
 
-void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch);
+void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber,
+        bool aParameterMatch);
 void FreeLinkedList(struct Node** head_ref);
 
 #endif

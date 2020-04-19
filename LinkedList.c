@@ -7,7 +7,8 @@
 
 struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch);
 
-void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch)
+void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber,
+        bool aParameterMatch)
 {
     struct Node* current = NULL;
 
