@@ -5,13 +5,13 @@
 #define SUCCESS_CODE (0)
 #define FAILED_CODE (-1)
 
-struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber);
+struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch);
 
-void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber)
+void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch)
 {
     struct Node* current = NULL;
 
-    struct Node* new_node = CreateNode(new_line, valid, byteOffset, lineNumber);
+    struct Node* new_node = CreateNode(new_line, valid, byteOffset, lineNumber, aParameterMatch);
 
     if (*head_ref == NULL)
     {
@@ -51,7 +51,7 @@ void FreeLinkedList(struct Node** head_ref)
         return_code = Pop(head_ref);
 }
 
-struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber)
+struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch)
 {
     struct Node *new_node = (struct Node*)malloc(sizeof(struct Node));
     if (new_node == NULL)
@@ -64,7 +64,7 @@ struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber)
     new_node->byteOffset = byteOffset;
     new_node->lineNumber = lineNumber;
     new_node->valid = valid;
-    new_node->printed = false;
+    new_node->aParameterMatch = aParameterMatch;
     new_node->next = NULL;
 
     return new_node;

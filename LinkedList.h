@@ -10,11 +10,11 @@ struct Node
     bool valid;
     int byteOffset;
     int lineNumber;
-    bool printed;
+    bool aParameterMatch;
     struct Node *next;
 };
 
-void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber);
+void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch);
 void FreeLinkedList(struct Node** head_ref);
 
 #endif

@@ -14,6 +14,7 @@ FILE* GetInputStream(Parameters *parameters);
 FILE* OpenFile(const char *filename);
 void ReportLineMatch(struct Node* line, Parameters *parameters);
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
+void PrintLineMatch(struct Node* line, Parameters *parameters, char separator);
 
 int main(int argc, char *argv[])
 {
@@ -54,15 +55,28 @@ void Grep(Parameters *parameters)
 
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream)
 {
-    int bytes_read = 0, lineNumber = 1;
-    bool valid;
+    int bytes_read = 0, lineNumber = 1, aParameter = 0;
+    bool valid, aParameterMatch;
     char *line;
 
     line = ReadLine(input_stream);
     while (line != NULL)
     {
         valid = IsMatchInLine(parameters, line);
-        AddToEndOfLinkedList(lines, line, valid, bytes_read, lineNumber);
+        if (valid && parameters->aParameter != -1)
+        {
+            aParameter = parameters->aParameter;
+        }
+        if (aParameter > 0)
+        {
+            aParameterMatch = true;
+            aParameter--;
+        }
+        else
+        {
+            aParameterMatch = false;
+        }
+        AddToEndOfLinkedList(lines, line, valid, bytes_read, lineNumber, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
         lineNumber++;
@@ -153,24 +167,31 @@ void ReportLineMatch(struct Node* line, Parameters *parameters)
     }
     else if (line->valid)
     {
-        line->printed = true;
-        if (parameters->cParameter) //print only line numbers
-        {
-            printf("%d\n", line->lineNumber);
-        } else if (parameters->nParameter) //print line number before every line
-        {
-            if (parameters->bParameter) //print byte offset before line
-            {
-                printf("%d:%d:%s", line->lineNumber, line->byteOffset, line->line);
-            } else {
-                printf("%d:%s", line->lineNumber, line->line);
-            }
-        } else if (parameters->bParameter) //print byte offset before line
-        {
-            printf("%d:%s", line->byteOffset, line->line);
-        } else {
-            printf("%s", line->line);
-        }
+        PrintLineMatch(line, parameters, ':');
+    }
+    else if (line->aParameterMatch)
+    {
+        PrintLineMatch(line, parameters, '-');
     }
 }
 
+void PrintLineMatch(struct Node* line, Parameters *parameters, char separator)
+{
+    if (parameters->cParameter) //print only line numbers
+    {
+        printf("%d\n", line->lineNumber);
+    } else if (parameters->nParameter) //print line number before every line
+    {
+        if (parameters->bParameter) //print byte offset before line
+        {
+            printf("%d%c%d%c%s", line->lineNumber, separator, line->byteOffset, separator, line->line);
+        } else {
+            printf("%d%c%s", line->lineNumber, separator, line->line);
+        }
+    } else if (parameters->bParameter) //print byte offset before line
+    {
+        printf("%d%c%s", line->byteOffset, separator, line->line);
+    } else {
+        printf("%s", line->line);
+    }
+}
