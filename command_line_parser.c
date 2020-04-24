@@ -97,16 +97,16 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
             parameters->lines_after_context = atoi(argv[option_argument]); // TODO: Check parsing
             break;
         case 'b':
-            parameters->bParameter = true;
+            parameters->byte_offset = true;
             break;
         case 'c':
-            parameters->cParameter = true;
+            parameters->print_line_count = true;
             break;
         case 'i':
             parameters->ignore_case = true;
             break;
         case 'n':
-            parameters->nParameter = true;
+            parameters->line_number = true;
             break;
         case 'v':
             parameters->invert_match = true;
@@ -115,7 +115,7 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
             parameters->exact_match = true;
             break;
         case 'E':
-            parameters->eParameter = true;
+            parameters->is_regexp = true;
             parameters->expression = CopyString(argv[option_argument]);
             break;
         default:
@@ -130,7 +130,7 @@ bool ParseNonOptionArguments(Parameters *parameters, int arg_index, char *argv[]
 {
     bool valid_argument = true;
 
-    if (!parameters->eParameter && parameters->expression == NULL)
+    if (!parameters->is_regexp && parameters->expression == NULL)
     {
         parameters->expression = CopyString(argv[arg_index]);
         if (parameters->expression == NULL)
@@ -178,11 +178,11 @@ void InitializeParametersStruct(Parameters *parameters)
     parameters->expression = NULL;
     parameters->input_mode = INPUT_STDIN;
     parameters->lines_after_context = -1;
-    parameters->bParameter = false;
-    parameters->cParameter = false;
-    parameters->eParameter = false;
+    parameters->byte_offset = false;
+    parameters->print_line_count = false;
+    parameters->is_regexp = false;
     parameters->ignore_case = false;
-    parameters->nParameter = false;
+    parameters->line_number = false;
     parameters->invert_match = false;
     parameters->exact_match = false;
 }

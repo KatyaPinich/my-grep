@@ -215,18 +215,18 @@ bool ReportLine(Node *line, bool invert_match)
 
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator)
 {
-    if (parameters->cParameter) //print only line numbers
+    if (parameters->print_line_count) //print only line numbers
     {
         printf("%d\n", line->line_number);
-    } else if (parameters->nParameter) //print line number before every line
+    } else if (parameters->line_number) //print line number before every line
     {
-        if (parameters->bParameter) //print byte offset before line
+        if (parameters->byte_offset) //print byte offset before line
         {
             printf("%d%c%d%c%s", line->line_number, separator, line->match_offset, separator, line->line);
         } else {
             printf("%d%c%s", line->line_number, separator, line->line);
         }
-    } else if (parameters->bParameter) //print byte offset before line
+    } else if (parameters->byte_offset) //print byte offset before line
     {
         printf("%d%c%s", line->match_offset, separator, line->line);
     } else {
