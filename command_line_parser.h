@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-typedef enum
+typedef enum InputMode
 {
     INPUT_FILE,
     INPUT_STDIN
@@ -12,12 +12,12 @@ typedef enum
 typedef struct Parameters
 {
     char *expression;
-    InputMode inputMode;
+    InputMode input_mode;
     char *filename;
     int aParameter;
     bool bParameter;
     bool cParameter;
-    bool ignoreCase;
+    bool ignore_case;
     bool nParameter;
     bool vParameter;
     bool xParameter;

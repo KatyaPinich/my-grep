@@ -47,7 +47,7 @@ void Grep(Parameters *parameters)
         line = line->next;
     }
 
-    if (parameters->inputMode == INPUT_FILE)
+    if (parameters->input_mode == INPUT_FILE)
         fclose(input_stream);
 
     FreeLinkedList(&lines);
@@ -85,7 +85,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
 
 FILE* GetInputStream(Parameters *parameters)
 {
-    if (parameters->inputMode == INPUT_FILE)
+    if (parameters->input_mode == INPUT_FILE)
     {
         return OpenFile(parameters->filename);
     }
@@ -129,7 +129,7 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
 {
     bool match;
 
-    if(parameters->ignoreCase) //dont mind uppercase/lowercase expression
+    if(parameters->ignore_case) //dont mind uppercase/lowercase expression
     {
         if (parameters->xParameter) //find exact lines only
         {
