@@ -111,6 +111,9 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
         case 'v':
             parameters->invert_match = true;
             break;
+        case 'x':
+            parameters->exact_match = true;
+            break;
         case 'E':
             parameters->eParameter = true;
             parameters->expression = CopyString(argv[option_argument]);
@@ -181,7 +184,7 @@ void InitializeParametersStruct(Parameters *parameters)
     parameters->ignore_case = false;
     parameters->nParameter = false;
     parameters->invert_match = false;
-    parameters->xParameter = false;
+    parameters->exact_match = false;
 }
 
 void PrintErrorAndExit(const char *error_message, Parameters *parameters)

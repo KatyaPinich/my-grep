@@ -158,9 +158,9 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
 {
     bool match;
 
-    if (parameters->xParameter) //find exact lines only
+    if (parameters->exact_match) //find exact lines only
     {
-        match = strcmp(parameters->expression, line) == 0;
+        match = strncmp(parameters->expression, line, strlen(parameters->expression)) == 0;
     }
     else
     {

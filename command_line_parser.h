@@ -20,7 +20,7 @@ typedef struct Parameters
     bool ignore_case;
     bool nParameter;
     bool invert_match;
-    bool xParameter;
+    bool exact_match;
     bool eParameter;
 } Parameters;
 
