@@ -14,7 +14,7 @@ typedef struct Parameters
     char *expression;
     InputMode input_mode;
     char *filename;
-    int aParameter;
+    int lines_after_context;
     bool bParameter;
     bool cParameter;
     bool ignore_case;

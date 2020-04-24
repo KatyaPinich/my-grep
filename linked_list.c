@@ -62,10 +62,11 @@ struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, 
     }
 
     new_node->line = line;
-    new_node->byteOffset = byteOffset;
-    new_node->lineNumber = lineNumber;
-    new_node->valid = valid;
+    new_node->match_offset = byteOffset;
+    new_node->line_number = lineNumber;
+    new_node->is_match = valid;
     new_node->aParameterMatch = aParameterMatch;
+    new_node->reported = false;
     new_node->next = NULL;
 
     return new_node;

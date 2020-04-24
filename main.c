@@ -16,6 +16,7 @@ FILE* OpenFile(const char *filename);
 void ReportLineMatch(struct Node* line, Parameters *parameters);
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator);
+bool ReportLine(Node *line, bool invert_match);
 
 int main(int argc, char *argv[])
 {
@@ -56,7 +57,7 @@ void Grep(Parameters *parameters)
 
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream)
 {
-    int bytes_read = 0, lineNumber = 1, aParameter = 0;
+    int bytes_read = 0, line_number = 1, aParameter = 0;
     bool has_match, aParameterMatch;
     char *line;
     char *lineToMatch;
@@ -90,26 +91,24 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
 
         has_match = IsMatchInLine(parameters, lineToMatch);
 
-        if (parameters->invert_match)
-            has_match = !has_match;
+//        if (has_match && parameters->aParameter != -1)
+//        {
+//            aParameter = parameters->aParameter;
+//        }
+//        if (aParameter > 0)
+//        {
+//            aParameterMatch = true;
+//            aParameter--;
+//        }
+//        else
+//        {
+//            aParameterMatch = false;
+//        }
 
-        if (has_match && parameters->aParameter != -1)
-        {
-            aParameter = parameters->aParameter;
-        }
-        if (aParameter > 0)
-        {
-            aParameterMatch = true;
-            aParameter--;
-        }
-        else
-        {
-            aParameterMatch = false;
-        }
-        AddToEndOfLinkedList(lines, line, has_match, bytes_read, lineNumber, aParameterMatch);
+        AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
-        lineNumber++;
+        line_number++;
     }
 }
 
@@ -172,36 +171,87 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
 
 void ReportLineMatch(struct Node* line, Parameters *parameters)
 {
+    int reported_after_context;
+    Node *line_after_context;
+
     if (line == NULL)
     {
         return;
     }
-    else if (line->valid)
+
+    if (ReportLine(line, parameters->invert_match))
     {
-        PrintLineMatch(line, parameters, ':');
+        if (!line->reported)
+        {
+            PrintLineMatch(line, parameters, ':');
+            line->reported = true;
+        }
+
+        if (parameters->lines_after_context > 0)
+        {
+            line_after_context = line->next;
+            reported_after_context = parameters->lines_after_context;
+            while (reported_after_context > 0 && line_after_context->next != NULL)
+            {
+                if (!line_after_context->reported)
+                {
+                    if (ReportLine(line_after_context, parameters->invert_match))
+                    {
+                        PrintLineMatch(line_after_context, parameters, ':');
+                    }
+                    else
+                    {
+                        PrintLineMatch(line_after_context, parameters, '-');
+                    }
+
+                    line_after_context->reported = true;
+                }
+
+                line_after_context = line_after_context->next;
+                reported_after_context--;
+            }
+        }
     }
-    else if (line->aParameterMatch)
+
+//    else if (line->is_match)
+//    {
+//        PrintLineMatch(line, parameters, ':');
+//    }
+//    else if (line->aParameterMatch)
+//    {
+//        PrintLineMatch(line, parameters, '-');
+//    }
+}
+
+bool ReportLine(Node *line, bool invert_match)
+{
+    if (!invert_match)
     {
-        PrintLineMatch(line, parameters, '-');
+        return line->is_match;
     }
+    else
+    {
+        return !line->is_match;
+    }
+
 }
 
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator)
 {
     if (parameters->cParameter) //print only line numbers
     {
-        printf("%d\n", line->lineNumber);
+        printf("%d\n", line->line_number);
     } else if (parameters->nParameter) //print line number before every line
     {
         if (parameters->bParameter) //print byte offset before line
         {
-            printf("%d%c%d%c%s", line->lineNumber, separator, line->byteOffset, separator, line->line);
+            printf("%d%c%d%c%s", line->line_number, separator, line->match_offset, separator, line->line);
         } else {
-            printf("%d%c%s", line->lineNumber, separator, line->line);
+            printf("%d%c%s", line->line_number, separator, line->line);
         }
     } else if (parameters->bParameter) //print byte offset before line
     {
-        printf("%d%c%s", line->byteOffset, separator, line->line);
+        printf("%d%c%s", line->match_offset, separator, line->line);
     } else {
         printf("%s", line->line);
     }

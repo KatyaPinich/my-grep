@@ -94,7 +94,7 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
 
     switch (option) {
         case 'A':
-            parameters->aParameter = atoi(argv[option_argument]); // TODO: Check parsing
+            parameters->lines_after_context = atoi(argv[option_argument]); // TODO: Check parsing
             break;
         case 'b':
             parameters->bParameter = true;
@@ -174,7 +174,7 @@ void InitializeParametersStruct(Parameters *parameters)
     parameters->filename = NULL;
     parameters->expression = NULL;
     parameters->input_mode = INPUT_STDIN;
-    parameters->aParameter = -1;
+    parameters->lines_after_context = -1;
     parameters->bParameter = false;
     parameters->cParameter = false;
     parameters->eParameter = false;
