@@ -7,12 +7,10 @@
 #include "command_line_parser.h"
 #include "linked_list.h"
 #include "string_tools.h"
+#include "stream_handler.h"
 
 void Grep(Parameters *parameters);
-char* ReadLine(FILE* input_stream);
 bool IsMatchInLine(Parameters *parameters, const char *line);
-FILE* GetInputStream(Parameters *parameters);
-FILE* OpenFile(const char *filename);
 void ReportLineMatch(struct Node* line, Parameters *parameters);
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator);
@@ -96,48 +94,6 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
         line = ReadLine(input_stream);
         line_number++;
     }
-}
-
-FILE* GetInputStream(Parameters *parameters)
-{
-    if (parameters->input_mode == INPUT_FILE)
-    {
-        return OpenFile(parameters->filename);
-    }
-    else
-    {
-        return stdin;
-    }
-}
-
-FILE* OpenFile(const char *filename)
-{
-    FILE *file;
-
-    file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        printf("Could not open file %s for reading.\n", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    return file;
-}
-
-char* ReadLine(FILE* input_stream)
-{
-    char *line = NULL;
-    size_t line_length = 0;
-    ssize_t bytes_read;
-
-    bytes_read = getline(&line, &line_length, input_stream);
-    if (bytes_read == -1)
-    {
-        free(line);
-        line = NULL;
-    }
-
-    return line;
 }
 
 bool IsMatchInLine(Parameters *parameters, const char *line)
