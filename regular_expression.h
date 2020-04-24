@@ -15,6 +15,14 @@ typedef struct ExpressionElement
     char value;
 } ExpressionElement;
 
-ExpressionElement** ParseExpression(const char *expression_string);
+typedef struct Expression
+{
+    struct ExpressionElement **elements;
+    int element_count;
+} Expression;
+
+Expression* ParseExpression(const char *expression_string);
+bool IsMatchInLine(const char *line, Expression *expression, bool exact_match);
+void FreeExpression(Expression *expression);
 
 #endif

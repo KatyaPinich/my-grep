@@ -8,9 +8,9 @@
 #include "linked_list.h"
 #include "string_tools.h"
 #include "stream_handler.h"
+#include "regular_expression.h"
 
 void Grep(Parameters *parameters);
-bool IsMatchInLine(Parameters *parameters, const char *line);
 void ReportLineMatch(struct Node* line, Parameters *parameters);
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator);
@@ -59,6 +59,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
     bool has_match, aParameterMatch;
     char *line;
     char *lineToMatch;
+    Expression *expression;
 
     if (parameters->ignore_case)
     {
@@ -69,6 +70,8 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
             exit(EXIT_FAILURE);
         }
     }
+
+    expression = ParseExpression(parameters->expression);
 
     line = ReadLine(input_stream);
     while (line != NULL)
@@ -87,28 +90,13 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
             lineToMatch = line;
         }
 
-        has_match = IsMatchInLine(parameters, lineToMatch);
+        has_match = IsMatchInLine(lineToMatch, expression, parameters->exact_match);
 
         AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
         line_number++;
     }
-}
-
-bool IsMatchInLine(Parameters *parameters, const char *line)
-{
-    bool match;
-
-    if (parameters->exact_match) //find exact lines only
-    {
-        match = strncmp(parameters->expression, line, strlen(parameters->expression)) == 0;
-    }
-    else
-    {
-        match = strstr(line, parameters->expression) != NULL;
-    }
-    return match;
 }
 
 void ReportLineMatch(struct Node* line, Parameters *parameters)
