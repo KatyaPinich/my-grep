@@ -57,7 +57,7 @@ void Grep(Parameters *parameters)
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream)
 {
     int bytes_read = 0, lineNumber = 1, aParameter = 0;
-    bool valid, aParameterMatch;
+    bool has_match, aParameterMatch;
     char *line;
     char *lineToMatch;
 
@@ -88,8 +88,12 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
             lineToMatch = line;
         }
 
-        valid = IsMatchInLine(parameters, lineToMatch);
-        if (valid && parameters->aParameter != -1)
+        has_match = IsMatchInLine(parameters, lineToMatch);
+
+        if (parameters->invert_match)
+            has_match = !has_match;
+
+        if (has_match && parameters->aParameter != -1)
         {
             aParameter = parameters->aParameter;
         }
@@ -102,7 +106,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
         {
             aParameterMatch = false;
         }
-        AddToEndOfLinkedList(lines, line, valid, bytes_read, lineNumber, aParameterMatch);
+        AddToEndOfLinkedList(lines, line, has_match, bytes_read, lineNumber, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
         lineNumber++;
@@ -162,11 +166,6 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
     else
     {
         match = strstr(line, parameters->expression) != NULL;
-    }
-
-    if(parameters->invert_match) //print only lines which dont include the expression
-    {
-        match = !match;
     }
     return match;
 }
