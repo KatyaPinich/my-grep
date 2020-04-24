@@ -91,20 +91,6 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
 
         has_match = IsMatchInLine(parameters, lineToMatch);
 
-//        if (has_match && parameters->aParameter != -1)
-//        {
-//            aParameter = parameters->aParameter;
-//        }
-//        if (aParameter > 0)
-//        {
-//            aParameterMatch = true;
-//            aParameter--;
-//        }
-//        else
-//        {
-//            aParameterMatch = false;
-//        }
-
         AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
@@ -212,15 +198,6 @@ void ReportLineMatch(struct Node* line, Parameters *parameters)
             }
         }
     }
-
-//    else if (line->is_match)
-//    {
-//        PrintLineMatch(line, parameters, ':');
-//    }
-//    else if (line->aParameterMatch)
-//    {
-//        PrintLineMatch(line, parameters, '-');
-//    }
 }
 
 bool ReportLine(Node *line, bool invert_match)
