@@ -6,6 +6,7 @@
 
 #include "command_line_parser.h"
 #include "LinkedList.h"
+#include "string_tools.h"
 
 void Grep(Parameters *parameters);
 char* ReadLine(FILE* input_stream);
@@ -59,9 +60,29 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
     bool valid, aParameterMatch;
     char *line;
 
+    if (parameters->ignore_case)
+    {
+        parameters->expression = ToLowercaseString(parameters->expression);
+        if (parameters->expression == NULL)
+        {
+            FreeParameters(parameters);
+            exit(EXIT_FAILURE);
+        }
+    }
+
     line = ReadLine(input_stream);
     while (line != NULL)
     {
+        if (parameters->ignore_case)
+        {
+            line = ToLowercaseString(line);
+            if (line == NULL)
+            {
+                FreeParameters(parameters);
+                exit(EXIT_FAILURE);
+            }
+        }
+
         valid = IsMatchInLine(parameters, line);
         if (valid && parameters->aParameter != -1)
         {
@@ -128,28 +149,15 @@ char* ReadLine(FILE* input_stream)
 bool IsMatchInLine(Parameters *parameters, const char *line)
 {
     bool match;
+    char *lineToMatch;
 
-    if(parameters->ignore_case) //dont mind uppercase/lowercase expression
+    if (parameters->xParameter) //find exact lines only
     {
-        if (parameters->xParameter) //find exact lines only
-        {
-            match = strcasecmp(parameters->expression, line) == 0;
-        }
-        else
-        {
-            match = strcasestr(line, parameters->expression) != NULL;
-        }
+        match = strcmp(parameters->expression, line) == 0;
     }
     else
     {
-        if (parameters->xParameter) //find exact lines only
-        {
-            match = strcmp(parameters->expression, line) == 0;
-        }
-        else
-        {
-            match = strstr(line, parameters->expression) != NULL;
-        }
+        match = strstr(line, parameters->expression) != NULL;
     }
 
     if(parameters->vParameter) //print only lines which dont include the expression
