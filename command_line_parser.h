@@ -15,13 +15,13 @@ typedef struct Parameters
     InputMode input_mode;
     char *filename;
     int lines_after_context;
-    bool bParameter;
-    bool cParameter;
+    bool byte_offset;
+    bool print_line_count;
     bool ignore_case;
-    bool nParameter;
+    bool line_number;
     bool invert_match;
     bool exact_match;
-    bool eParameter;
+    bool is_regexp;
 } Parameters;
 
 Parameters* ParseParameters(int argc, char *argv[]);

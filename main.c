@@ -7,12 +7,10 @@
 #include "command_line_parser.h"
 #include "linked_list.h"
 #include "string_tools.h"
+#include "stream_handler.h"
+#include "regular_expression.h"
 
 void Grep(Parameters *parameters);
-char* ReadLine(FILE* input_stream);
-bool IsMatchInLine(Parameters *parameters, const char *line);
-FILE* GetInputStream(Parameters *parameters);
-FILE* OpenFile(const char *filename);
 void ReportLineMatch(struct Node* line, Parameters *parameters);
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator);
@@ -61,6 +59,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
     bool has_match, aParameterMatch;
     char *line;
     char *lineToMatch;
+    Expression *expression;
 
     if (parameters->ignore_case)
     {
@@ -71,6 +70,8 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
             exit(EXIT_FAILURE);
         }
     }
+
+    expression = ParseExpression(parameters->expression);
 
     line = ReadLine(input_stream);
     while (line != NULL)
@@ -89,70 +90,13 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
             lineToMatch = line;
         }
 
-        has_match = IsMatchInLine(parameters, lineToMatch);
+        has_match = IsMatchInLine(lineToMatch, expression, parameters->exact_match);
 
         AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
         line_number++;
     }
-}
-
-FILE* GetInputStream(Parameters *parameters)
-{
-    if (parameters->input_mode == INPUT_FILE)
-    {
-        return OpenFile(parameters->filename);
-    }
-    else
-    {
-        return stdin;
-    }
-}
-
-FILE* OpenFile(const char *filename)
-{
-    FILE *file;
-
-    file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        printf("Could not open file %s for reading.\n", filename);
-        exit(EXIT_FAILURE);
-    }
-
-    return file;
-}
-
-char* ReadLine(FILE* input_stream)
-{
-    char *line = NULL;
-    size_t line_length = 0;
-    ssize_t bytes_read;
-
-    bytes_read = getline(&line, &line_length, input_stream);
-    if (bytes_read == -1)
-    {
-        free(line);
-        line = NULL;
-    }
-
-    return line;
-}
-
-bool IsMatchInLine(Parameters *parameters, const char *line)
-{
-    bool match;
-
-    if (parameters->exact_match) //find exact lines only
-    {
-        match = strncmp(parameters->expression, line, strlen(parameters->expression)) == 0;
-    }
-    else
-    {
-        match = strstr(line, parameters->expression) != NULL;
-    }
-    return match;
 }
 
 void ReportLineMatch(struct Node* line, Parameters *parameters)
@@ -215,18 +159,18 @@ bool ReportLine(Node *line, bool invert_match)
 
 void PrintLineMatch(struct Node* line, Parameters *parameters, char separator)
 {
-    if (parameters->cParameter) //print only line numbers
+    if (parameters->print_line_count) //print only line numbers
     {
         printf("%d\n", line->line_number);
-    } else if (parameters->nParameter) //print line number before every line
+    } else if (parameters->line_number) //print line number before every line
     {
-        if (parameters->bParameter) //print byte offset before line
+        if (parameters->byte_offset) //print byte offset before line
         {
             printf("%d%c%d%c%s", line->line_number, separator, line->match_offset, separator, line->line);
         } else {
             printf("%d%c%s", line->line_number, separator, line->line);
         }
-    } else if (parameters->bParameter) //print byte offset before line
+    } else if (parameters->byte_offset) //print byte offset before line
     {
         printf("%d%c%s", line->match_offset, separator, line->line);
     } else {
