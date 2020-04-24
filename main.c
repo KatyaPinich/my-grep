@@ -59,6 +59,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
     int bytes_read = 0, lineNumber = 1, aParameter = 0;
     bool valid, aParameterMatch;
     char *line;
+    char *lineToMatch;
 
     if (parameters->ignore_case)
     {
@@ -75,15 +76,19 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
     {
         if (parameters->ignore_case)
         {
-            line = ToLowercaseString(line);
-            if (line == NULL)
+            lineToMatch = ToLowercaseString(line);
+            if (lineToMatch == NULL)
             {
                 FreeParameters(parameters);
                 exit(EXIT_FAILURE);
             }
         }
+        else
+        {
+            lineToMatch = line;
+        }
 
-        valid = IsMatchInLine(parameters, line);
+        valid = IsMatchInLine(parameters, lineToMatch);
         if (valid && parameters->aParameter != -1)
         {
             aParameter = parameters->aParameter;
@@ -149,7 +154,6 @@ char* ReadLine(FILE* input_stream)
 bool IsMatchInLine(Parameters *parameters, const char *line)
 {
     bool match;
-    char *lineToMatch;
 
     if (parameters->xParameter) //find exact lines only
     {
