@@ -129,7 +129,7 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
 {
     bool match;
 
-    if(parameters->iParameter) //dont mind uppercase/lowercase expression
+    if(parameters->ignoreCase) //dont mind uppercase/lowercase expression
     {
         if (parameters->xParameter) //find exact lines only
         {

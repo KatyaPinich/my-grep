@@ -17,7 +17,7 @@ typedef struct Parameters
     int aParameter;
     bool bParameter;
     bool cParameter;
-    bool iParameter;
+    bool ignoreCase;
     bool nParameter;
     bool vParameter;
     bool xParameter;

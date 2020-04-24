@@ -103,7 +103,7 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
             parameters->cParameter = true;
             break;
         case 'i':
-            parameters->iParameter = true;
+            parameters->ignoreCase = true;
             break;
         case 'n':
             parameters->nParameter = true;
@@ -127,17 +127,21 @@ bool ParseNonOptionArguments(Parameters *parameters, int arg_index, char *argv[]
 {
     bool valid_argument = true;
 
-    if (!parameters->eParameter && parameters->expression == NULL){
+    if (!parameters->eParameter && parameters->expression == NULL)
+    {
         parameters->expression = CopyString(argv[arg_index]);
-        if (parameters->expression == NULL){
+        if (parameters->expression == NULL)
+        {
             FreeParameters(parameters);
             exit(EXIT_FAILURE);
         }
     }
-    else if (parameters->filename == NULL){
+    else if (parameters->filename == NULL)
+    {
         parameters->inputMode = INPUT_FILE;
         parameters->filename = CopyString(argv[arg_index]);
-        if (parameters->filename == NULL){
+        if (parameters->filename == NULL)
+        {
             FreeParameters(parameters);
             exit(EXIT_FAILURE);
         }
@@ -174,7 +178,7 @@ void InitializeParametersStruct(Parameters *parameters)
     parameters->bParameter = false;
     parameters->cParameter = false;
     parameters->eParameter = false;
-    parameters->iParameter = false;
+    parameters->ignoreCase = false;
     parameters->nParameter = false;
     parameters->vParameter = false;
     parameters->xParameter = false;
