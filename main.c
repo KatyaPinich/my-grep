@@ -31,20 +31,33 @@ void Grep(Parameters *parameters)
 {
     FILE* input_stream;
     struct Node *lines = NULL, *line = NULL;
+    int match_count = 0;
 
     input_stream = GetInputStream(parameters);
 
     FillLinesStruct(parameters, &lines, input_stream);
 
     line = lines;
-    if (line == NULL)
-    {
-        ReportLineMatch(line, parameters);
-    }
     while (line != NULL)
     {
-        ReportLineMatch(line, parameters);
+        if (ReportLine(line, parameters->invert_match))
+        {
+            if (parameters->print_line_count)
+            {
+                match_count++;
+            }
+            else
+            {
+                ReportLineMatch(line, parameters);
+            }
+        }
+
         line = line->next;
+    }
+
+    if (parameters->print_line_count)
+    {
+        printf("%d\n", match_count);
     }
 
     if (parameters->input_mode == INPUT_FILE)
@@ -104,42 +117,34 @@ void ReportLineMatch(struct Node* line, Parameters *parameters)
     int reported_after_context;
     Node *line_after_context;
 
-    if (line == NULL)
+    if (!line->reported)
     {
-        return;
+        PrintLineMatch(line, parameters, ':');
+        line->reported = true;
     }
 
-    if (ReportLine(line, parameters->invert_match))
+    if (parameters->lines_after_context > 0)
     {
-        if (!line->reported)
+        line_after_context = line->next;
+        reported_after_context = parameters->lines_after_context;
+        while (reported_after_context > 0 && line_after_context->next != NULL)
         {
-            PrintLineMatch(line, parameters, ':');
-            line->reported = true;
-        }
-
-        if (parameters->lines_after_context > 0)
-        {
-            line_after_context = line->next;
-            reported_after_context = parameters->lines_after_context;
-            while (reported_after_context > 0 && line_after_context->next != NULL)
+            if (!line_after_context->reported)
             {
-                if (!line_after_context->reported)
+                if (ReportLine(line_after_context, parameters->invert_match))
                 {
-                    if (ReportLine(line_after_context, parameters->invert_match))
-                    {
-                        PrintLineMatch(line_after_context, parameters, ':');
-                    }
-                    else
-                    {
-                        PrintLineMatch(line_after_context, parameters, '-');
-                    }
-
-                    line_after_context->reported = true;
+                    PrintLineMatch(line_after_context, parameters, ':');
+                }
+                else
+                {
+                    PrintLineMatch(line_after_context, parameters, '-');
                 }
 
-                line_after_context = line_after_context->next;
-                reported_after_context--;
+                line_after_context->reported = true;
             }
+
+            line_after_context = line_after_context->next;
+            reported_after_context--;
         }
     }
 }
