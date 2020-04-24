@@ -26,7 +26,5 @@ typedef struct Parameters
 
 Parameters* ParseParameters(int argc, char *argv[]);
 void FreeParameters(Parameters *parameters);
-void InitializeParametersStruct(Parameters *parameters);
-int UpdateParameterInStruct(Parameters *parameters, char *argv[], int i);
 
 #endif
