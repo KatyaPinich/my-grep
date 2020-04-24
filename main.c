@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "command_line_parser.h"
-#include "LinkedList.h"
+#include "linked_list.h"
 #include "string_tools.h"
 
 void Grep(Parameters *parameters);

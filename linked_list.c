@@ -1,6 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include "LinkedList.h"
+#include "linked_list.h"
 
 #define SUCCESS_CODE (0)
 #define FAILED_CODE (-1)
