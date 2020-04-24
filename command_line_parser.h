@@ -19,7 +19,7 @@ typedef struct Parameters
     bool cParameter;
     bool ignore_case;
     bool nParameter;
-    bool vParameter;
+    bool invert_match;
     bool xParameter;
     bool eParameter;
 } Parameters;

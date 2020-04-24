@@ -109,7 +109,7 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
             parameters->nParameter = true;
             break;
         case 'v':
-            parameters->vParameter = true;
+            parameters->invert_match = true;
             break;
         case 'E':
             parameters->eParameter = true;
@@ -180,7 +180,7 @@ void InitializeParametersStruct(Parameters *parameters)
     parameters->eParameter = false;
     parameters->ignore_case = false;
     parameters->nParameter = false;
-    parameters->vParameter = false;
+    parameters->invert_match = false;
     parameters->xParameter = false;
 }
 

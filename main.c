@@ -164,7 +164,7 @@ bool IsMatchInLine(Parameters *parameters, const char *line)
         match = strstr(line, parameters->expression) != NULL;
     }
 
-    if(parameters->vParameter) //print only lines which dont include the expression
+    if(parameters->invert_match) //print only lines which dont include the expression
     {
         match = !match;
     }
