@@ -114,6 +114,7 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
         case 'E':
             parameters->eParameter = true;
             parameters->expression = CopyString(argv[option_argument]);
+            break;
         default:
             valid_option = false;
             break;
