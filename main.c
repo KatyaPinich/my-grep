@@ -68,8 +68,8 @@ void Grep(Parameters *parameters)
 
 void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream)
 {
-    int bytes_read = 0, line_number = 1, aParameter = 0;
-    bool has_match, aParameterMatch;
+    int bytes_read = 0, line_number = 1;
+    bool has_match, aParameterMatch = false;
     char *line;
     char *lineToMatch;
     Expression *expression;
@@ -110,6 +110,7 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
         line = ReadLine(input_stream);
         line_number++;
     }
+    FreeExpression(expression);
 }
 
 void ReportLineMatch(struct Node* line, Parameters *parameters)

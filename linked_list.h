@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-/* A linked list node */
 typedef struct Node
 {
     char *line;
