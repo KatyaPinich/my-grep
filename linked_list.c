@@ -7,13 +7,14 @@
 
 struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch);
 
-void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber,
+int AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int byteOffset, int lineNumber,
         bool aParameterMatch)
 {
     struct Node* current = NULL;
 
     struct Node* new_node = CreateNode(new_line, valid, byteOffset, lineNumber, aParameterMatch);
-
+    if (new_node == NULL)
+        return 1;
     if (*head_ref == NULL)
     {
         *head_ref = new_node;
@@ -27,6 +28,7 @@ void AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, in
 
         current->next = new_node;
     }
+    return 0;
 }
 
 int Pop(struct Node** head_ref)
@@ -58,7 +60,7 @@ struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, 
     if (new_node == NULL)
     {
         printf("Failed to create a new node in linked list.");
-        exit(1);
+        return NULL;
     }
 
     new_node->line = line;

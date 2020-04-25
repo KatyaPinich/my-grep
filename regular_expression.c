@@ -36,7 +36,7 @@ Expression* ParseExpression(const char *expression_string)
         if (elements[element_count] == NULL)
         {
             FreeElements(elements, element_count);
-            exit(EXIT_FAILURE);
+            return NULL;
         }
         element_count++;
 

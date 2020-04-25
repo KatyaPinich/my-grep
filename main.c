@@ -34,6 +34,11 @@ void Grep(Parameters *parameters)
     int match_count = 0;
 
     input_stream = GetInputStream(parameters);
+    if (input_stream == NULL)
+    {
+        FreeParameters(parameters);
+        exit(EXIT_FAILURE);
+    }
 
     FillLinesStruct(parameters, &lines, input_stream);
 
@@ -70,13 +75,14 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
 {
     int bytes_read = 0, line_number = 1;
     bool has_match, aParameterMatch = false;
-    char *line;
-    char *lineToMatch;
+    char *line, *lineToMatch, *tempExpression;
     Expression *expression;
 
     if (parameters->ignore_case)
     {
+        tempExpression = parameters->expression;
         parameters->expression = ToLowercaseString(parameters->expression);
+        free(tempExpression);
         if (parameters->expression == NULL)
         {
             FreeParameters(parameters);
@@ -85,6 +91,11 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
     }
 
     expression = ParseExpression(parameters->expression);
+    if (expression == NULL)
+    {
+        FreeParameters(parameters);
+        exit(EXIT_FAILURE);
+    }
 
     line = ReadLine(input_stream);
     while (line != NULL)
@@ -108,7 +119,11 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
         {
             free(lineToMatch);
         }
-        AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch);
+        if (AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch) == 1)
+        {
+            FreeParameters(parameters);
+            exit(EXIT_FAILURE);
+        }
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
         line_number++;

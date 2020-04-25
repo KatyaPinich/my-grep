@@ -23,7 +23,6 @@ FILE* OpenFile(const char *filename)
     if (file == NULL)
     {
         printf("Could not open file %s for reading.\n", filename);
-        exit(EXIT_FAILURE);
     }
 
     return file;
