@@ -8,7 +8,7 @@
 Expression* CreateExpression(ExpressionElement **elements, int element_count);
 ExpressionElement* CreateExpressionElement(RegexType element_type, char expression_char);
 void FreeElements(ExpressionElement **elements, int element_count);
-bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index);
+bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match);
 
 Expression* ParseExpression(const char *expression_string)
 {
@@ -97,9 +97,14 @@ bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
 
     while (line[i] != '\0')
     {
-        if (IsMatchAtPlace(i, line, expression, expression_index))
+        if (IsMatchAtPlace(i, line, expression, expression_index, exact_match))
         {
             return true;
+        }
+
+        if (exact_match)
+        {
+            break;
         }
 
         i++;
@@ -109,11 +114,19 @@ bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
 }
 
 // TODO: For now we handle the easiest case which is just matching the character
-bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index)
+bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match)
 {
     if (expression_index >= expression->element_count)
-        return true;
-
+    {
+        if (!exact_match || line[at_place] == '\n' || line[at_place] == '\0')
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     if (line[at_place] == '\0')
         return expression_index == expression->element_count;
 
@@ -123,6 +136,6 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
     }
     else
     {
-        return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1);
+        return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match);
     }
 }
