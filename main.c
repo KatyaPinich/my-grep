@@ -104,7 +104,10 @@ void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_st
         }
 
         has_match = IsMatchInLine(lineToMatch, expression, parameters->exact_match);
-
+        if (parameters->ignore_case)
+        {
+            free(lineToMatch);
+        }
         AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch);
         bytes_read += strlen(line);
         line = ReadLine(input_stream);
