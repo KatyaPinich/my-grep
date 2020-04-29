@@ -17,6 +17,7 @@ Expression* ParseExpression(const char *expression_string)
     int expression_length;
     int i = 0;
     int element_count = 0;
+    bool backslash = false;
 
     expression_length = strlen(expression_string);
 
@@ -28,18 +29,26 @@ Expression* ParseExpression(const char *expression_string)
     {
         if (expression_string[i] == '\\')
         {
+            backslash = true;
             i++;
         }
 
-        // For now we only have regular characters
-        elements[element_count] = CreateExpressionElement(REGEX_CHAR, expression_string[i]);
+        // For now we only have regular characters and '.'
+        if (expression_string[i] == '.' && !backslash)
+        {
+            elements[element_count] = CreateExpressionElement(REGEX_WILDCARD, expression_string[i]);
+        }
+        else
+        {
+            elements[element_count] = CreateExpressionElement(REGEX_CHAR, expression_string[i]);
+        }
         if (elements[element_count] == NULL)
         {
             FreeElements(elements, element_count);
             return NULL;
         }
         element_count++;
-
+        backslash = false;
         i++;
     }
 
@@ -113,9 +122,11 @@ bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
     return false;
 }
 
-// TODO: For now we handle the easiest case which is just matching the character
+// TODO: For now we handle just matching the character and '.'
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match)
 {
+    char elementValue;
+    RegexType elementType;
     if (expression_index >= expression->element_count)
     {
         if (!exact_match || line[at_place] == '\n' || line[at_place] == '\0')
@@ -129,8 +140,9 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
     }
     if (line[at_place] == '\0')
         return expression_index == expression->element_count;
-
-    if (line[at_place] != expression->elements[expression_index]->value)
+    elementValue = expression->elements[expression_index]->value;
+    elementType = expression->elements[expression_index]->type;
+    if (line[at_place] != elementValue && elementType != REGEX_WILDCARD)
     {
         return false;
     }
