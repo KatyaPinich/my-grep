@@ -13,6 +13,7 @@ typedef struct ExpressionElement
 {
     RegexType type;
     char value;
+    char rangeValue;
 } ExpressionElement;
 
 typedef struct Expression

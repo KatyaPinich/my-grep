@@ -6,7 +6,7 @@
 #include "command_line_parser.h"
 
 Expression* CreateExpression(ExpressionElement **elements, int element_count);
-ExpressionElement* CreateExpressionElement(RegexType element_type, char expression_char);
+ExpressionElement* CreateExpressionElement(RegexType element_type, char expression_char, char expression_char_range);
 void FreeElements(ExpressionElement **elements, int element_count);
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match);
 
@@ -23,8 +23,9 @@ Expression* ParseExpression(const char *expression_string)
 
     elements = calloc(expression_length, sizeof(*elements));
     if (elements == NULL)
+    {
         return NULL;
-
+    }
     while (expression_string[i] != '\0')
     {
         if (expression_string[i] == '\\')
@@ -33,14 +34,20 @@ Expression* ParseExpression(const char *expression_string)
             i++;
         }
 
-        // For now we only have regular characters and '.'
-        if (expression_string[i] == '.' && !backslash)
+        // For now we only have regular characters, '.' and '[X-Y]'
+        if (expression_string[i] == '[' && !backslash)
         {
-            elements[element_count] = CreateExpressionElement(REGEX_WILDCARD, expression_string[i]);
+            elements[element_count] = CreateExpressionElement(REGEX_RANGE,
+                    expression_string[i + 1], expression_string[i + 3]);
+            i = i + 4;
+        }
+        else if (expression_string[i] == '.' && !backslash)
+        {
+            elements[element_count] = CreateExpressionElement(REGEX_WILDCARD, expression_string[i], ' ');
         }
         else
         {
-            elements[element_count] = CreateExpressionElement(REGEX_CHAR, expression_string[i]);
+            elements[element_count] = CreateExpressionElement(REGEX_CHAR, expression_string[i], ' ');
         }
         if (elements[element_count] == NULL)
         {
@@ -57,13 +64,14 @@ Expression* ParseExpression(const char *expression_string)
     return expression;
 }
 
-ExpressionElement* CreateExpressionElement(RegexType element_type, char expression_char)
+ExpressionElement* CreateExpressionElement(RegexType element_type, char expression_char, char expression_char_range)
 {
     ExpressionElement *new_element = (ExpressionElement*)malloc(sizeof(ExpressionElement));
     if (new_element != NULL)
     {
         new_element->type = element_type;
         new_element->value = expression_char;
+        new_element->rangeValue = expression_char_range;
     }
 
     return new_element;
@@ -122,10 +130,10 @@ bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
     return false;
 }
 
-// TODO: For now we handle just matching the character and '.'
+// TODO: For now we handle just matching the character, [X-Y] and '.'
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match)
 {
-    char elementValue;
+    char elementValue, elementValueRange;
     RegexType elementType;
     if (expression_index >= expression->element_count)
     {
@@ -139,15 +147,23 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
         }
     }
     if (line[at_place] == '\0')
+    {
         return expression_index == expression->element_count;
+    }
     elementValue = expression->elements[expression_index]->value;
+    elementValueRange = expression->elements[expression_index]->rangeValue;
     elementType = expression->elements[expression_index]->type;
-    if (line[at_place] != elementValue && elementType != REGEX_WILDCARD)
+    if (line[at_place] != elementValue)
     {
-        return false;
+        if (elementType == REGEX_RANGE && (line[at_place] < elementValue || line[at_place] > elementValueRange))
+        {
+            return false;
+        }
+        else if (elementType != REGEX_WILDCARD && elementType != REGEX_RANGE)
+        {
+            return false;
+        }
     }
-    else
-    {
-        return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match);
-    }
+
+    return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match);
 }
