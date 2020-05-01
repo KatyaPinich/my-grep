@@ -3,46 +3,40 @@
 
 #include "stream_handler.h"
 
-FILE* OpenFile(const char *filename);
+FILE *OpenFile(const char *filename);
 
-FILE* GetInputStream(Parameters *parameters)
+FILE *GetInputStream(Parameters *parameters)
 {
-    if (parameters->input_mode == INPUT_FILE)
-    {
-        return OpenFile(parameters->filename);
-    }
-    else
-    {
-        return stdin;
-    }
+  if (parameters->input_mode == INPUT_FILE) {
+    return OpenFile(parameters->filename);
+  } else {
+    return stdin;
+  }
 }
 
-FILE* OpenFile(const char *filename)
+FILE *OpenFile(const char *filename)
 {
-    FILE *file;
+  FILE *file;
 
-    file = fopen(filename, "r");
-    if (file == NULL)
-    {
-        printf("Could not open file %s for reading.\n", filename);
-    }
+  file = fopen(filename, "r");
+  if (file == NULL) {
+    printf("Could not open file %s for reading.\n", filename);
+  }
 
-    return file;
+  return file;
 }
 
-char* ReadLine(FILE* input_stream)
+char *ReadLine(FILE *input_stream)
 {
-    char *line = NULL;
-    size_t line_length = 0;
-    ssize_t bytes_read;
+  char *line = NULL;
+  size_t line_length = 0;
+  ssize_t bytes_read;
 
-    bytes_read = getline(&line, &line_length, input_stream);
-    if (bytes_read == -1)
-    {
-        free(line);
-        line = NULL;
-    }
+  bytes_read = getline(&line, &line_length, input_stream);
+  if (bytes_read == -1) {
+    free(line);
+    line = NULL;
+  }
 
-    return line;
+  return line;
 }
-

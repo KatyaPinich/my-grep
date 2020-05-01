@@ -5,7 +5,7 @@
 
 #include "command_line_parser.h"
 
-FILE* GetInputStream(Parameters *parameters);
-char* ReadLine(FILE* input_stream);
+FILE *GetInputStream(Parameters *parameters);
+char *ReadLine(FILE *input_stream);
 
 #endif
