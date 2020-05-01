@@ -3,30 +3,25 @@
 
 typedef enum RegexType { REGEX_WILDCARD, REGEX_OR, REGEX_RANGE, REGEX_CHAR } RegexType;
 
-typedef struct RangeExpression {
+typedef struct RangeElement {
     char start;
     char end;
-} RangeExpression;
+} RangeElement;
 
-typedef struct OrExpression {
+typedef struct OrElement {
     char *first_option;
     char *second_option;
     bool optional;
-} OrExpression;
+} OrElement;
 
 typedef union ElementInfo {
     char value;
-    RangeExpression *range;
-    OrExpression *alternation;
+    RangeElement *range;
+    OrElement *alternation;
 } ElementInfo;
 
 typedef struct ExpressionElement {
   RegexType type;
-  char value1;
-  char value2;
-  bool emptyFirstTerm;
-  bool emptySecondTerm;
-  bool lastOrType;
   ElementInfo* info;
 } ExpressionElement;
 

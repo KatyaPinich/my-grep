@@ -6,8 +6,7 @@
 #include "string_tools.h"
 
 Expression *CreateExpression(ExpressionElement **elements, int element_count);
-ExpressionElement *CreateExpressionElement(RegexType element_type, char expression_char, char expression_char2,
-                                           bool emptyFirstTerm, bool emptySecondTerm, ElementInfo *element_info);
+ExpressionElement *CreateExpressionElement(RegexType element_type, ElementInfo *element_info);
 void FreeElements(ExpressionElement **elements, int element_count);
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match);
 int FindOrTerm(char **str, int index, const char *expression_string, char stopChar);
@@ -90,13 +89,7 @@ ExpressionElement* CreateCharElement(char value)
     }
 
     element_info->value = value;
-    return CreateExpressionElement(
-            REGEX_CHAR,
-            value,
-            ' ',
-            false,
-            false,
-            element_info);
+    return CreateExpressionElement(REGEX_CHAR, element_info);
 }
 
 ExpressionElement* CreateWildcardElement()
@@ -109,13 +102,7 @@ ExpressionElement* CreateWildcardElement()
     }
 
     element_info->value = '.';
-    return CreateExpressionElement(
-            REGEX_WILDCARD,
-            '.',
-            ' ',
-            false,
-            false,
-            element_info);
+    return CreateExpressionElement(REGEX_WILDCARD, element_info);
 }
 
 ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index)
@@ -129,7 +116,7 @@ ExpressionElement* CreateRangeElement(const char *expression_string, int open_br
         return NULL;
     }
 
-    element_info->range = (RangeExpression*)malloc(sizeof(RangeExpression));
+    element_info->range = (RangeElement*)malloc(sizeof(RangeElement));
     if (element_info->range == NULL) {
         return NULL;
     }
@@ -140,13 +127,7 @@ ExpressionElement* CreateRangeElement(const char *expression_string, int open_br
     element_info->range->start = range_start;
     element_info->range->end = range_end;
 
-    return CreateExpressionElement(
-            REGEX_RANGE,
-            range_start,
-            range_end,
-            false,
-            false,
-            element_info);
+    return CreateExpressionElement(REGEX_RANGE, element_info);
 }
 
 ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index)
@@ -167,7 +148,7 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
         return NULL;
     }
 
-    element_info->alternation = (OrExpression*)malloc(sizeof(OrExpression));
+    element_info->alternation = (OrElement*)malloc(sizeof(OrElement));
     if (element_info->alternation == NULL) {
         return NULL;
     }
@@ -199,13 +180,7 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
         element_info->alternation->optional = true;
     }
 
-    return CreateExpressionElement(
-            REGEX_OR,
-            expression_string[open_brace_index + 1],
-            expression_string[or_index + 1],
-            false,
-            false,
-            element_info);
+    return CreateExpressionElement(REGEX_OR, element_info);
 }
 
 char* CopySubstring(const char *source, int start_index, int count)
@@ -274,17 +249,11 @@ int FindOrTerm(char **str, int index, const char *expression_string, char stopCh
   return count + 1;
 }
 
-ExpressionElement *CreateExpressionElement(RegexType element_type, char expression_char, char expression_char2,
-                                           bool emptyFirstTerm, bool emptySecondTerm, ElementInfo *element_info)
+ExpressionElement *CreateExpressionElement(RegexType element_type, ElementInfo *element_info)
 {
   ExpressionElement *new_element = (ExpressionElement *)malloc(sizeof(ExpressionElement));
   if (new_element != NULL) {
     new_element->type = element_type;
-    new_element->value1 = expression_char;
-    new_element->value2 = expression_char2;
-    new_element->emptyFirstTerm = emptyFirstTerm;
-    new_element->emptySecondTerm = emptySecondTerm;
-    new_element->lastOrType = false;
     new_element->info = element_info;
   }
 
@@ -388,7 +357,7 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
 
 bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match)
 {
-    OrExpression *alternation;
+    OrElement *alternation;
     bool first_match = false;
     bool second_match = false;
 
