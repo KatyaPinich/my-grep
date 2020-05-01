@@ -38,7 +38,8 @@ Expression *ParseExpression(const char *expression_string)
 
   expression_length = strlen(expression_string);
 
-  elements = calloc(expression_length, sizeof(*elements));
+  //elements = calloc(expression_length, sizeof(*elements));
+  elements = malloc(sizeof(*elements) * expression_length);
   if (elements == NULL) {
     return NULL;
   }
@@ -92,8 +93,8 @@ ExpressionElement* CreateCharElement(char value)
 
     element_info->value = value;
     return CreateExpressionElement(
-            REGEX_WILDCARD,
-            '.',
+            REGEX_CHAR,
+            value,
             ' ',
             false,
             false,
@@ -345,16 +346,43 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
 {
   char elementValue, elementValue2;
   RegexType elementType;
-  if (expression_index >= expression->element_count || expression->elements[expression_index] == NULL) {
-    if (!exact_match || line[at_place] == '\n' || line[at_place] == '\0') {
-      return true;
-    } else {
-      return false;
-    }
+
+  // We reached the end of the expression
+  if (expression_index >= expression->element_count) {
+      if (exact_match) {
+          // We have an exact match only if we reached the end of the line
+          return (line[at_place] == '\n' || line[at_place] == '\0');
+      } else {
+          // We reached the end of the expression and we are not looking for an exact match
+          // return true
+          return true;
+      }
   }
-  if (line[at_place] == '\0') {
-    return expression_index == expression->element_count;
+
+//  if (expression_index >= expression->element_count || expression->elements[expression_index] == NULL) {
+//    if (!exact_match || line[at_place] == '\n' || line[at_place] == '\0') {
+//      return true;
+//    } else {
+//      return false;
+//    }
+//  }
+
+  // If we reached the end of the line, but not the end of the expression return false
+  if (line[at_place] == '\n' || line[at_place] == '\0') {
+    return false;//expression_index == expression->element_count;
   }
+
+  switch(expression->elements[expression_index]->type) {
+      case REGEX_CHAR:
+          if (line[at_place] != expression->elements[expression_index]->info->value) {
+              return false;
+          }
+          break;
+  }
+
+  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, prevFirstTermMatch,
+                          prevSecondTermMatch);
+
   elementValue = expression->elements[expression_index]->value1;
   elementValue2 = expression->elements[expression_index]->value2;
   elementType = expression->elements[expression_index]->type;
