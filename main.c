@@ -15,6 +15,7 @@ void ReportLineMatch(struct Node *line, Parameters *parameters);
 void FillLinesStruct(Parameters *parameters, struct Node **lines, FILE *input_stream);
 void PrintLineMatch(struct Node *line, Parameters *parameters, char separator);
 bool ReportLine(Node *line, bool invert_match);
+void PrintLinesAfterContextSeparator(int match_count, int lines_after_context, struct Node *previousLine);
 
 int main(int argc, char *argv[])
 {
@@ -42,11 +43,7 @@ void Grep(Parameters *parameters)
   while (line != NULL) {
     if (ReportLine(line, parameters->invert_match)) {
       if (!parameters->print_line_count) {
-        if (match_count > 0 && parameters->lines_after_context > 0) {
-          if (!previousLine->reported) {
-            printf("--\n");
-          }
-        }
+        PrintLinesAfterContextSeparator(match_count, parameters->lines_after_context, previousLine);
         ReportLineMatch(line, parameters);
       }
       match_count++;
@@ -61,6 +58,15 @@ void Grep(Parameters *parameters)
     fclose(input_stream);
   }
   FreeLinkedList(&lines);
+}
+
+void PrintLinesAfterContextSeparator(int match_count, int lines_after_context, struct Node *previousLine)
+{
+  if (match_count > 0 && lines_after_context > 0) {
+    if (!previousLine->reported) {
+      printf("--\n");
+    }
+  }
 }
 
 void FillLinesStruct(Parameters *parameters, struct Node **lines, FILE *input_stream)
