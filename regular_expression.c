@@ -138,7 +138,7 @@ ExpressionElement* CreateRangeElement(const char *expression_string, int open_br
     }
 
     range_start = expression_string[open_bracket_index + 1];
-    range_end = expression_string[open_bracket_index + 2];
+    range_end = expression_string[open_bracket_index + 3];
 
     element_info->range->start = range_start;
     element_info->range->end = range_end;
@@ -175,7 +175,7 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
         return NULL;
     }
 
-    if (first_option_length > 1 && second_option_length > 1) {
+    if (first_option_length > 0 && second_option_length > 0) {
         first_option = CopySubstring(expression_string, open_brace_index + 1, first_option_length);
         second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
         if (first_option == NULL || second_option == NULL) {
@@ -186,7 +186,7 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
         element_info->alternation->second_option = second_option;
         element_info->alternation->optional = false;
 
-    } else if (first_option_length > 1) {
+    } else if (first_option_length > 0) {
         first_option = CopySubstring(expression_string, open_brace_index + 1, first_option_length);
         if (first_option == NULL) {
             return NULL;
