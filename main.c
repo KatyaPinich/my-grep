@@ -1,199 +1,177 @@
 #define _GNU_SOURCE
-#include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "command_line_parser.h"
 #include "linked_list.h"
-#include "string_tools.h"
-#include "stream_handler.h"
 #include "regular_expression.h"
+#include "stream_handler.h"
+#include "string_tools.h"
 
 void Grep(Parameters *parameters);
-void ReportLineMatch(struct Node* line, Parameters *parameters);
-void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream);
-void PrintLineMatch(struct Node* line, Parameters *parameters, char separator);
+void ReportLineMatch(struct Node *line, Parameters *parameters);
+void FillLinesStruct(Parameters *parameters, struct Node **lines, FILE *input_stream);
+void PrintLineMatch(struct Node *line, Parameters *parameters, char separator);
 bool ReportLine(Node *line, bool invert_match);
 
 int main(int argc, char *argv[])
 {
-    Parameters *parameters;
+  Parameters *parameters;
 
-    parameters = ParseParameters(argc, argv);
-    Grep(parameters);
-    FreeParameters(parameters);
+  parameters = ParseParameters(argc, argv);
+  Grep(parameters);
+  FreeParameters(parameters);
 
-    return 0;
+  return 0;
 }
 
 void Grep(Parameters *parameters)
 {
-    FILE* input_stream;
-    struct Node *lines = NULL, *line = NULL, *previousLine = NULL;
-    int match_count = 0;
-    input_stream = GetInputStream(parameters);
-    if (input_stream == NULL){
-        FreeParameters(parameters);
-        exit(EXIT_FAILURE);
-    }
-    FillLinesStruct(parameters, &lines, input_stream);
-    line = lines;
-    while (line != NULL){
-        if (ReportLine(line, parameters->invert_match)){
-            if (!parameters->print_line_count){
-                if (match_count > 0 && parameters->lines_after_context > 0){
-                    if (!previousLine->reported){
-                        printf("--\n");
-                    }
-                }
-                ReportLineMatch(line, parameters);
-            }
-            match_count++;
+  FILE *input_stream;
+  struct Node *lines = NULL, *line = NULL, *previousLine = NULL;
+  int match_count = 0;
+  input_stream = GetInputStream(parameters);
+  if (input_stream == NULL) {
+    FreeParameters(parameters);
+    exit(EXIT_FAILURE);
+  }
+  FillLinesStruct(parameters, &lines, input_stream);
+  line = lines;
+  while (line != NULL) {
+    if (ReportLine(line, parameters->invert_match)) {
+      if (!parameters->print_line_count) {
+        if (match_count > 0 && parameters->lines_after_context > 0) {
+          if (!previousLine->reported) {
+            printf("--\n");
+          }
         }
-        previousLine = line;
-        line = line->next;
+        ReportLineMatch(line, parameters);
+      }
+      match_count++;
     }
-    if (parameters->print_line_count){
-        printf("%d\n", match_count);
-    }
-    if (parameters->input_mode == INPUT_FILE) {
-        fclose(input_stream);
-    }
-    FreeLinkedList(&lines);
+    previousLine = line;
+    line = line->next;
+  }
+  if (parameters->print_line_count) {
+    printf("%d\n", match_count);
+  }
+  if (parameters->input_mode == INPUT_FILE) {
+    fclose(input_stream);
+  }
+  FreeLinkedList(&lines);
 }
 
-void FillLinesStruct(Parameters *parameters, struct Node* *lines, FILE* input_stream)
+void FillLinesStruct(Parameters *parameters, struct Node **lines, FILE *input_stream)
 {
-    int bytes_read = 0, line_number = 1;
-    bool has_match, aParameterMatch = false;
-    char *line, *lineToMatch, *tempExpression;
-    Expression *expression;
+  int bytes_read = 0, line_number = 1;
+  bool has_match, aParameterMatch = false;
+  char *line, *lineToMatch, *tempExpression;
+  Expression *expression;
 
-    if (parameters->ignore_case)
-    {
-        tempExpression = parameters->expression;
-        parameters->expression = ToLowercaseString(parameters->expression);
-        free(tempExpression);
-        if (parameters->expression == NULL)
-        {
-            FreeParameters(parameters);
-            exit(EXIT_FAILURE);
-        }
+  if (parameters->ignore_case) {
+    tempExpression = parameters->expression;
+    parameters->expression = ToLowercaseString(parameters->expression);
+    free(tempExpression);
+    if (parameters->expression == NULL) {
+      FreeParameters(parameters);
+      exit(EXIT_FAILURE);
     }
+  }
 
-    expression = ParseExpression(parameters->expression);
-    if (expression == NULL)
-    {
+  expression = ParseExpression(parameters->expression);
+  if (expression == NULL) {
+    FreeParameters(parameters);
+    exit(EXIT_FAILURE);
+  }
+
+  line = ReadLine(input_stream);
+  while (line != NULL) {
+    if (parameters->ignore_case) {
+      lineToMatch = ToLowercaseString(line);
+      if (lineToMatch == NULL) {
         FreeParameters(parameters);
         exit(EXIT_FAILURE);
+      }
+    } else {
+      lineToMatch = line;
     }
 
+    has_match = IsMatchInLine(lineToMatch, expression, parameters->exact_match);
+    if (parameters->ignore_case) {
+      free(lineToMatch);
+    }
+    if (AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch) == 1) {
+      FreeParameters(parameters);
+      exit(EXIT_FAILURE);
+    }
+    bytes_read += strlen(line);
     line = ReadLine(input_stream);
-    while (line != NULL)
-    {
-        if (parameters->ignore_case)
-        {
-            lineToMatch = ToLowercaseString(line);
-            if (lineToMatch == NULL)
-            {
-                FreeParameters(parameters);
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            lineToMatch = line;
-        }
-
-        has_match = IsMatchInLine(lineToMatch, expression, parameters->exact_match);
-        if (parameters->ignore_case)
-        {
-            free(lineToMatch);
-        }
-        if (AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch) == 1)
-        {
-            FreeParameters(parameters);
-            exit(EXIT_FAILURE);
-        }
-        bytes_read += strlen(line);
-        line = ReadLine(input_stream);
-        line_number++;
-    }
-    FreeExpression(expression);
+    line_number++;
+  }
+  FreeExpression(expression);
 }
 
-void ReportLineMatch(struct Node* line, Parameters *parameters)
+void ReportLineMatch(struct Node *line, Parameters *parameters)
 {
-    int reported_after_context;
-    Node *line_after_context;
+  int reported_after_context;
+  Node *line_after_context;
 
-    if (!line->reported)
-    {
-        PrintLineMatch(line, parameters, ':');
-        line->reported = true;
+  if (!line->reported) {
+    PrintLineMatch(line, parameters, ':');
+    line->reported = true;
+  }
+
+  if (parameters->lines_after_context > 0) {
+    line_after_context = line->next;
+    if (line_after_context == NULL) {
+      return;
     }
-
-    if (parameters->lines_after_context > 0)
-    {
-        line_after_context = line->next;
-        if (line_after_context == NULL)
-        {
-            return;
+    reported_after_context = parameters->lines_after_context;
+    while (reported_after_context > 0 && line_after_context->next != NULL) {
+      if (!line_after_context->reported) {
+        if (ReportLine(line_after_context, parameters->invert_match)) {
+          PrintLineMatch(line_after_context, parameters, ':');
+        } else {
+          PrintLineMatch(line_after_context, parameters, '-');
         }
-        reported_after_context = parameters->lines_after_context;
-        while (reported_after_context > 0 && line_after_context->next != NULL)
-        {
-            if (!line_after_context->reported)
-            {
-                if (ReportLine(line_after_context, parameters->invert_match))
-                {
-                    PrintLineMatch(line_after_context, parameters, ':');
-                }
-                else
-                {
-                    PrintLineMatch(line_after_context, parameters, '-');
-                }
 
-                line_after_context->reported = true;
-            }
+        line_after_context->reported = true;
+      }
 
-            line_after_context = line_after_context->next;
-            reported_after_context--;
-        }
+      line_after_context = line_after_context->next;
+      reported_after_context--;
     }
+  }
 }
 
 bool ReportLine(Node *line, bool invert_match)
 {
-    if (!invert_match)
-    {
-        return line->is_match;
-    }
-    else
-    {
-        return !line->is_match;
-    }
-
+  if (!invert_match) {
+    return line->is_match;
+  } else {
+    return !line->is_match;
+  }
 }
 
-void PrintLineMatch(struct Node* line, Parameters *parameters, char separator)
+void PrintLineMatch(struct Node *line, Parameters *parameters, char separator)
 {
-    if (parameters->print_line_count) //print only line numbers
+  if (parameters->print_line_count)  // print only line numbers
+  {
+    printf("%d\n", line->line_number);
+  } else if (parameters->line_number)  // print line number before every line
+  {
+    if (parameters->byte_offset)  // print byte offset before line
     {
-        printf("%d\n", line->line_number);
-    } else if (parameters->line_number) //print line number before every line
-    {
-        if (parameters->byte_offset) //print byte offset before line
-        {
-            printf("%d%c%d%c%s", line->line_number, separator, line->match_offset, separator, line->line);
-        } else {
-            printf("%d%c%s", line->line_number, separator, line->line);
-        }
-    } else if (parameters->byte_offset) //print byte offset before line
-    {
-        printf("%d%c%s", line->match_offset, separator, line->line);
+      printf("%d%c%d%c%s", line->line_number, separator, line->match_offset, separator, line->line);
     } else {
-        printf("%s", line->line);
+      printf("%d%c%s", line->line_number, separator, line->line);
     }
+  } else if (parameters->byte_offset)  // print byte offset before line
+  {
+    printf("%d%c%s", line->match_offset, separator, line->line);
+  } else {
+    printf("%s", line->line);
+  }
 }
