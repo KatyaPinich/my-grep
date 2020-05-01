@@ -181,8 +181,8 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
             return NULL;
         }
 
-        element_info->alternation->first_option = first_option;
-        element_info->alternation->second_option = second_option;
+        element_info->alternation->first_option = expression_string[open_brace_index + 1];
+        element_info->alternation->second_option = expression_string[or_index + 1];
         element_info->alternation->optional = false;
 
     } else if (first_option_length > 1) {
@@ -190,14 +190,14 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
         if (first_option == NULL) {
             return NULL;
         }
-        element_info->alternation->first_option = first_option;
+        element_info->alternation->first_option = expression_string[open_brace_index + 1];
         element_info->alternation->optional = true;
     } else {
         second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
         if (second_option == NULL) {
             return NULL;
         }
-        element_info->alternation->first_option = second_option;
+        element_info->alternation->first_option = expression_string[or_index + 1];
         element_info->alternation->optional = true;
     }
 
@@ -371,17 +371,6 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
   if (line[at_place] == '\n' || line[at_place] == '\0') {
     return false;//expression_index == expression->element_count;
   }
-
-  switch(expression->elements[expression_index]->type) {
-      case REGEX_CHAR:
-          if (line[at_place] != expression->elements[expression_index]->info->value) {
-              return false;
-          }
-          break;
-  }
-
-  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, prevFirstTermMatch,
-                          prevSecondTermMatch);
 
   elementValue = expression->elements[expression_index]->value1;
   elementValue2 = expression->elements[expression_index]->value2;
