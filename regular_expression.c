@@ -23,6 +23,7 @@ ExpressionElement* CreateRangeElement(const char *expression_string, int open_br
 ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index);
 int IndexOfChar(const char *str, char value, int start_index);
 char* CopySubstring(const char *source, int start_index, int count);
+bool IsOrMatching(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match);
 
 Expression *ParseExpression(const char *expression_string)
 {
@@ -161,8 +162,8 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
     char *second_option;
 
     or_index = IndexOfChar(expression_string, '|', open_brace_index);
-    first_option_length = or_index - open_brace_index;
-    second_option_length = close_brace_index - or_index;
+    first_option_length = or_index - open_brace_index - 1;
+    second_option_length = close_brace_index - or_index - 1;
 
     element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
     if (element_info == NULL) {
@@ -181,8 +182,8 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
             return NULL;
         }
 
-        element_info->alternation->first_option = expression_string[open_brace_index + 1];
-        element_info->alternation->second_option = expression_string[or_index + 1];
+        element_info->alternation->first_option = first_option;
+        element_info->alternation->second_option = second_option;
         element_info->alternation->optional = false;
 
     } else if (first_option_length > 1) {
@@ -190,14 +191,14 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
         if (first_option == NULL) {
             return NULL;
         }
-        element_info->alternation->first_option = expression_string[open_brace_index + 1];
+        element_info->alternation->first_option = first_option;
         element_info->alternation->optional = true;
     } else {
         second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
         if (second_option == NULL) {
             return NULL;
         }
-        element_info->alternation->first_option = expression_string[or_index + 1];
+        element_info->alternation->first_option = second_option;
         element_info->alternation->optional = true;
     }
 
@@ -345,7 +346,9 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
                     bool prevFirstTermMatch, bool prevSecondTermMatch)
 {
   char elementValue, elementValue2;
-  RegexType elementType;
+  RegexType element_type;
+  ElementInfo *element_info;
+    OrExpression *alternation;
 
   // We reached the end of the expression
   if (expression_index >= expression->element_count) {
@@ -374,27 +377,87 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
 
   elementValue = expression->elements[expression_index]->value1;
   elementValue2 = expression->elements[expression_index]->value2;
-  elementType = expression->elements[expression_index]->type;
+    element_type = expression->elements[expression_index]->type;
+    element_info = expression->elements[expression_index]->info;
+
+  switch(element_type) {
+      case REGEX_CHAR:
+          if (line[at_place] != element_info->value) {
+              return false;
+          }
+          break;
+      case REGEX_RANGE:
+          if (line[at_place] < element_info->range->start ||
+              line[at_place] > element_info->range->end) {
+              return false;
+          }
+          break;
+      case REGEX_OR:
+          return IsOrMatching(line, at_place, expression, expression_index, exact_match);
+      case REGEX_WILDCARD:
+      default:
+          break;
+  }
+
+  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, prevFirstTermMatch,
+                          prevSecondTermMatch);
+
   if (expression_index > 0) {
     if (expression->elements[expression_index - 1]->lastOrType) {
       prevFirstTermMatch = true;
       prevSecondTermMatch = true;
     }
   }
-  if (elementType == REGEX_OR) {
+  if (element_type == REGEX_OR) {
     return IsRegexOrMatchAtPlace(line, at_place, expression, expression_index, exact_match, prevFirstTermMatch,
                                  prevSecondTermMatch);
   }
   if (line[at_place] != elementValue) {
-    if (elementType == REGEX_RANGE && (line[at_place] < elementValue || line[at_place] > elementValue2)) {
+    if (element_type == REGEX_RANGE && (line[at_place] < elementValue || line[at_place] > elementValue2)) {
       return false;
-    } else if (elementType != REGEX_WILDCARD && elementType != REGEX_RANGE) {
+    } else if (element_type != REGEX_WILDCARD && element_type != REGEX_RANGE) {
       return false;
     }
   }
 
   return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, prevFirstTermMatch,
                         prevSecondTermMatch);
+}
+
+bool IsOrMatching(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match)
+{
+    OrExpression *alternation;
+    bool first_match = false;
+    bool second_match = false;
+
+    alternation = expression->elements[expression_index]->info->alternation;
+    if (!alternation->optional) {
+        if (strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) {
+            first_match = IsMatchAtPlace(
+                    at_place + strlen(alternation->first_option),
+                    line,
+                    expression,
+                    expression_index + 1,
+                    exact_match,
+                    false,
+                    false);
+        }
+        if (strncmp(&(line[at_place]), alternation->second_option, strlen(alternation->second_option)) == 0) {
+            second_match = IsMatchAtPlace(
+                    at_place + strlen(alternation->second_option),
+                    line,
+                    expression,
+                    expression_index + 1,
+                    exact_match,
+                    false,
+                    false
+                    );
+        }
+        return first_match || second_match;
+    } else {
+        return (IsMatchAtPlace(at_place, line, expression, expression_index + 1, exact_match, false, false) ||
+                strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0);
+    }
 }
 
 bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,

@@ -9,8 +9,8 @@ typedef struct RangeExpression {
 } RangeExpression;
 
 typedef struct OrExpression {
-    char first_option;
-    char second_option;
+    char *first_option;
+    char *second_option;
     bool optional;
 } OrExpression;
 
