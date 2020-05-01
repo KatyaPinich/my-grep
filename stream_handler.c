@@ -3,6 +3,8 @@
 
 #include "stream_handler.h"
 
+FILE* OpenFile(const char *filename);
+
 FILE* GetInputStream(Parameters *parameters)
 {
     if (parameters->input_mode == INPUT_FILE)

@@ -12,8 +12,11 @@ typedef enum RegexType
 typedef struct ExpressionElement
 {
     RegexType type;
-    char value;
-    char rangeValue;
+    char value1;
+    char value2;
+    bool emptyFirstTerm;
+    bool emptySecondTerm;
+    bool lastOrType;
 } ExpressionElement;
 
 typedef struct Expression

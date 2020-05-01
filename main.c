@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 void Grep(Parameters *parameters)
 {
     FILE* input_stream;
-    struct Node *lines = NULL, *line = NULL;
+    struct Node *lines = NULL, *line = NULL, *previousLine = NULL;
     int match_count = 0;
 
     input_stream = GetInputStream(parameters);
@@ -47,16 +47,20 @@ void Grep(Parameters *parameters)
     {
         if (ReportLine(line, parameters->invert_match))
         {
-            if (parameters->print_line_count)
+            if (!parameters->print_line_count)
             {
-                match_count++;
-            }
-            else
-            {
+                if (match_count > 0 && parameters->lines_after_context > 0)
+                {
+                    if (!previousLine->reported)
+                    {
+                        printf("--\n");
+                    }
+                }
                 ReportLineMatch(line, parameters);
             }
+            match_count++;
         }
-
+        previousLine = line;
         line = line->next;
     }
 
@@ -145,6 +149,10 @@ void ReportLineMatch(struct Node* line, Parameters *parameters)
     if (parameters->lines_after_context > 0)
     {
         line_after_context = line->next;
+        if (line_after_context == NULL)
+        {
+            return;
+        }
         reported_after_context = parameters->lines_after_context;
         while (reported_after_context > 0 && line_after_context->next != NULL)
         {

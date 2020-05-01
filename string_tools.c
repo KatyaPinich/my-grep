@@ -19,6 +19,22 @@ char* CopyString(const char *source_string)
     return destination_string;
 }
 
+void RoundBracketTermCopy(char **destinationString, const char *sourceString, int count)
+{
+    int i, j = 0;
+    for (i = 0; i < count; i++)
+    {
+        if (sourceString[j] == '\\')
+        {
+            i--;
+            j++;
+            continue;
+        }
+        (*destinationString)[i] = sourceString[j];
+        j++;
+    }
+}
+
 char* ToLowercaseString(const char *source_string)
 {
     char *destination_string;
