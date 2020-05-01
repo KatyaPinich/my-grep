@@ -25,7 +25,7 @@ Expression* ParseExpression(const char *expression_string)
     int expression_length;
     int i = 0;
     unsigned int j;
-    int element_count = 0;
+    int element_count = 0, firstOrTermLength, secondOrTermLength;
     bool backslash = false;
     char *firstOrTerm, *secondOrTerm, lowRangeChar, highRangeChar;
 
@@ -47,20 +47,36 @@ Expression* ParseExpression(const char *expression_string)
         if (expression_string[i] == '(' && !backslash)
         {
             i = i + FindOrTerms(&firstOrTerm, &secondOrTerm, expression_string, i);
-            for (j = 0; j < MinNum(strlen(firstOrTerm), strlen(secondOrTerm)); j++)
+            if (firstOrTerm != NULL)
+            {
+                firstOrTermLength = strlen(firstOrTerm);
+            }
+            else
+            {
+                firstOrTermLength = 0;
+            }
+            if (secondOrTerm != NULL)
+            {
+                secondOrTermLength = strlen(secondOrTerm);
+            }
+            else
+            {
+                secondOrTermLength = 0;
+            }
+            for (j = 0; j < MinNum(firstOrTermLength, secondOrTermLength); j++)
             {
                 elements[element_count] = CreateExpressionElement(REGEX_OR, firstOrTerm[j],
                         secondOrTerm[j], false, false);
                 element_count++;
             }
-            while (j < strlen(firstOrTerm))
+            while (j < firstOrTermLength)
             {
                 elements[element_count] = CreateExpressionElement(REGEX_OR, firstOrTerm[j],
                         ' ', false, true);
                 element_count++;
                 j++;
             }
-            while (j < strlen(secondOrTerm))
+            while (j < secondOrTermLength)
             {
                 elements[element_count] = CreateExpressionElement(REGEX_OR, ' ',
                         secondOrTerm[j], true, false);
