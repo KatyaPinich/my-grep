@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "command_line_parser.h"
 #include "regular_expression.h"
 #include "string_tools.h"
 
@@ -10,20 +9,18 @@ Expression *CreateExpression(ExpressionElement **elements, int element_count);
 ExpressionElement *CreateExpressionElement(RegexType element_type, char expression_char, char expression_char2,
                                            bool emptyFirstTerm, bool emptySecondTerm, ElementInfo *element_info);
 void FreeElements(ExpressionElement **elements, int element_count);
-bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match,
-                    bool prevFirstTermMatch, bool prevSecondTermMatch);
+bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match);
 int FindOrTerm(char **str, int index, const char *expression_string, char stopChar);
 int FindOrTerms(char **firstOrTerm, char **secondOrTerm, const char *expression_string, int index);
 unsigned int MinNum(int a, int b);
-bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
-                           bool exact_match, bool firstTermMatch, bool secondTermMatch);
+bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match);
 ExpressionElement* CreateCharElement(char value);
 ExpressionElement* CreateWildcardElement();
 ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index);
 ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index);
 int IndexOfChar(const char *str, char value, int start_index);
 char* CopySubstring(const char *source, int start_index, int count);
-bool IsOrMatching(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match);
+
 
 Expression *ParseExpression(const char *expression_string)
 {
@@ -328,7 +325,7 @@ bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
   int expression_index = 0;
 
   while (line[i] != '\0') {
-    if (IsMatchAtPlace(i, line, expression, expression_index, exact_match, true, true)) {
+    if (IsMatchAtPlace(i, line, expression, expression_index, exact_match)) {
       return true;
     }
 
@@ -342,13 +339,10 @@ bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
   return false;
 }
 
-bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match,
-                    bool prevFirstTermMatch, bool prevSecondTermMatch)
+bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match)
 {
-  char elementValue, elementValue2;
   RegexType element_type;
   ElementInfo *element_info;
-    OrExpression *alternation;
 
   // We reached the end of the expression
   if (expression_index >= expression->element_count) {
@@ -362,23 +356,13 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
       }
   }
 
-//  if (expression_index >= expression->element_count || expression->elements[expression_index] == NULL) {
-//    if (!exact_match || line[at_place] == '\n' || line[at_place] == '\0') {
-//      return true;
-//    } else {
-//      return false;
-//    }
-//  }
-
   // If we reached the end of the line, but not the end of the expression return false
   if (line[at_place] == '\n' || line[at_place] == '\0') {
     return false;//expression_index == expression->element_count;
   }
 
-  elementValue = expression->elements[expression_index]->value1;
-  elementValue2 = expression->elements[expression_index]->value2;
-    element_type = expression->elements[expression_index]->type;
-    element_info = expression->elements[expression_index]->info;
+  element_type = expression->elements[expression_index]->type;
+  element_info = expression->elements[expression_index]->info;
 
   switch(element_type) {
       case REGEX_CHAR:
@@ -393,38 +377,16 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
           }
           break;
       case REGEX_OR:
-          return IsOrMatching(line, at_place, expression, expression_index, exact_match);
+          return IsRegexOrMatchAtPlace(line, at_place, expression, expression_index, exact_match);
       case REGEX_WILDCARD:
       default:
           break;
   }
 
-  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, prevFirstTermMatch,
-                          prevSecondTermMatch);
-
-  if (expression_index > 0) {
-    if (expression->elements[expression_index - 1]->lastOrType) {
-      prevFirstTermMatch = true;
-      prevSecondTermMatch = true;
-    }
-  }
-  if (element_type == REGEX_OR) {
-    return IsRegexOrMatchAtPlace(line, at_place, expression, expression_index, exact_match, prevFirstTermMatch,
-                                 prevSecondTermMatch);
-  }
-  if (line[at_place] != elementValue) {
-    if (element_type == REGEX_RANGE && (line[at_place] < elementValue || line[at_place] > elementValue2)) {
-      return false;
-    } else if (element_type != REGEX_WILDCARD && element_type != REGEX_RANGE) {
-      return false;
-    }
-  }
-
-  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, prevFirstTermMatch,
-                        prevSecondTermMatch);
+  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match);
 }
 
-bool IsOrMatching(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match)
+bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match)
 {
     OrExpression *alternation;
     bool first_match = false;
@@ -437,9 +399,7 @@ bool IsOrMatching(const char *line, int at_place, Expression *expression, int ex
                 line,
                 expression,
                 expression_index + 1,
-                exact_match,
-                false,
-                false);
+                exact_match);
     }
 
     if (!alternation->optional) {
@@ -449,10 +409,7 @@ bool IsOrMatching(const char *line, int at_place, Expression *expression, int ex
                     line,
                     expression,
                     expression_index + 1,
-                    exact_match,
-                    false,
-                    false
-            );
+                    exact_match);
         }
     } else {
         second_match = IsMatchAtPlace(
@@ -460,77 +417,8 @@ bool IsOrMatching(const char *line, int at_place, Expression *expression, int ex
                 line,
                 expression,
                 expression_index + 1,
-                exact_match,
-                false,
-                false);
+                exact_match);
     }
 
     return first_match || second_match;
-}
-
-bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
-                           bool exact_match, bool prevFirstTermMatch, bool prevSecondTermMatch)
-{
-  char elementValue = expression->elements[expression_index]->value1;
-  char elementValue2 = expression->elements[expression_index]->value2;
-  int tempIndex;
-  bool term1Match, term2Match, firstTermMatch = true, secondTermMatch = true;
-  bool emptyFirstTerm = expression->elements[expression_index]->emptyFirstTerm;
-  bool emptySecondTerm = expression->elements[expression_index]->emptySecondTerm;
-
-  if (elementValue != line[at_place] && !emptyFirstTerm) {
-    firstTermMatch = false;
-    if (elementValue2 != line[at_place] && !emptySecondTerm) {
-      return false;
-    }
-  }
-  if (elementValue2 != line[at_place] && !emptySecondTerm) {
-    secondTermMatch = false;
-  }
-  if (expression_index > 0) {
-    if (!prevSecondTermMatch)
-      secondTermMatch = false;
-    if (!prevFirstTermMatch)
-      firstTermMatch = false;
-  }
-  if (!secondTermMatch && !firstTermMatch)
-    return false;
-  if (emptySecondTerm && emptyFirstTerm && secondTermMatch && firstTermMatch) {
-    return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, firstTermMatch,
-                          secondTermMatch);
-  }
-  if (emptySecondTerm && secondTermMatch) {
-    tempIndex = expression_index;
-    while (expression->elements[tempIndex]->emptySecondTerm) {
-      tempIndex++;
-      if (expression->elements[tempIndex] == NULL) {
-        break;
-      }
-    }
-    if (firstTermMatch)
-      term1Match = IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, firstTermMatch,
-                                  secondTermMatch);
-    else
-      term1Match = false;
-    term2Match = IsMatchAtPlace(at_place, line, expression, tempIndex, exact_match, firstTermMatch, true);
-    return term2Match || term1Match;
-  }
-  if (emptyFirstTerm && firstTermMatch) {
-    tempIndex = expression_index;
-    while (expression->elements[tempIndex]->emptyFirstTerm) {
-      tempIndex++;
-      if (expression->elements[tempIndex] == NULL) {
-        break;
-      }
-    }
-    term1Match = IsMatchAtPlace(at_place, line, expression, tempIndex, exact_match, true, secondTermMatch);
-    if (secondTermMatch)
-      term2Match = IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, firstTermMatch,
-                                  secondTermMatch);
-    else
-      term2Match = false;
-    return term1Match || term2Match;
-  }
-  return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match, firstTermMatch,
-                        secondTermMatch);
 }
