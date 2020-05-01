@@ -8,7 +8,7 @@
 
 Expression *CreateExpression(ExpressionElement **elements, int element_count);
 ExpressionElement *CreateExpressionElement(RegexType element_type, char expression_char, char expression_char2,
-                                           bool emptyFirstTerm, bool emptySecondTerm);
+                                           bool emptyFirstTerm, bool emptySecondTerm, ElementInfo *element_info);
 void FreeElements(ExpressionElement **elements, int element_count);
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match,
                     bool prevFirstTermMatch, bool prevSecondTermMatch);
@@ -71,7 +71,7 @@ Expression *ParseExpression(const char *expression_string)
       FreeElements(elements, element_count);
       return NULL;
     }
-    
+
     element_count++;
     i++;
   }
@@ -83,40 +83,76 @@ Expression *ParseExpression(const char *expression_string)
 
 ExpressionElement* CreateCharElement(char value)
 {
+    ElementInfo *element_info;
+
+    element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
+    if (element_info == NULL) {
+        return NULL;
+    }
+
+    element_info->value = value;
     return CreateExpressionElement(
-            REGEX_CHAR,
-            value,
+            REGEX_WILDCARD,
+            '.',
             ' ',
             false,
-            false);
+            false,
+            element_info);
 }
 
 ExpressionElement* CreateWildcardElement()
 {
+    ElementInfo *element_info;
+
+    element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
+    if (element_info == NULL) {
+        return NULL;
+    }
+
+    element_info->value = '.';
     return CreateExpressionElement(
-            REGEX_WILDCARD, '.',
+            REGEX_WILDCARD,
+            '.',
             ' ',
             false,
-            false);
+            false,
+            element_info);
 }
 
 ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index)
 {
+    ElementInfo *element_info;
     char range_start;
     char range_end;
 
+    element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
+    if (element_info == NULL) {
+        return NULL;
+    }
+
+    element_info->range = (RangeExpression*)malloc(sizeof(RangeExpression));
+    if (element_info->range == NULL) {
+        return NULL;
+    }
+
     range_start = expression_string[open_bracket_index + 1];
     range_end = expression_string[open_bracket_index + 2];
+
+    element_info->range->start = range_start;
+    element_info->range->end = range_end;
+
     return CreateExpressionElement(
             REGEX_RANGE,
             range_start,
             range_end,
             false,
-            false);
+            false,
+            element_info);
 }
 
 ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index)
 {
+    ElementInfo *element_info;
     int or_index;
     int first_option_length;
     int second_option_length;
@@ -127,41 +163,50 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
     first_option_length = or_index - open_brace_index;
     second_option_length = close_brace_index - or_index;
 
+    element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
+    if (element_info == NULL) {
+        return NULL;
+    }
+
+    element_info->alternation = (OrExpression*)malloc(sizeof(OrExpression));
+    if (element_info->alternation == NULL) {
+        return NULL;
+    }
+
     if (first_option_length > 1 && second_option_length > 1) {
         first_option = CopySubstring(expression_string, open_brace_index + 1, first_option_length);
         second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
         if (first_option == NULL || second_option == NULL) {
             return NULL;
         }
-        return CreateExpressionElement(
-                REGEX_OR,
-                first_option,
-                second_option,
-                false,
-                false);
+
+        element_info->alternation->first_option = first_option;
+        element_info->alternation->second_option = second_option;
+        element_info->alternation->optional = false;
+
     } else if (first_option_length > 1) {
         first_option = CopySubstring(expression_string, open_brace_index + 1, first_option_length);
         if (first_option == NULL) {
             return NULL;
         }
-        return CreateExpressionElement(
-                REGEX_OR,
-                first_option,
-                ' ',
-                false,
-                true);
+        element_info->alternation->first_option = first_option;
+        element_info->alternation->optional = true;
     } else {
         second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
         if (second_option == NULL) {
             return NULL;
         }
-        return CreateExpressionElement(
-                REGEX_OR,
-                ' ',
-                second_option,
-                true,
-                false);
+        element_info->alternation->first_option = second_option;
+        element_info->alternation->optional = true;
     }
+
+    return CreateExpressionElement(
+            REGEX_OR,
+            expression_string[open_brace_index + 1],
+            expression_string[or_index + 1],
+            false,
+            false,
+            element_info);
 }
 
 char* CopySubstring(const char *source, int start_index, int count)
@@ -231,7 +276,7 @@ int FindOrTerm(char **str, int index, const char *expression_string, char stopCh
 }
 
 ExpressionElement *CreateExpressionElement(RegexType element_type, char expression_char, char expression_char2,
-                                           bool emptyFirstTerm, bool emptySecondTerm)
+                                           bool emptyFirstTerm, bool emptySecondTerm, ElementInfo *element_info)
 {
   ExpressionElement *new_element = (ExpressionElement *)malloc(sizeof(ExpressionElement));
   if (new_element != NULL) {
@@ -241,6 +286,7 @@ ExpressionElement *CreateExpressionElement(RegexType element_type, char expressi
     new_element->emptyFirstTerm = emptyFirstTerm;
     new_element->emptySecondTerm = emptySecondTerm;
     new_element->lastOrType = false;
+    new_element->info = element_info;
   }
 
   return new_element;
