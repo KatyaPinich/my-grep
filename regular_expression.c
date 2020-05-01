@@ -456,7 +456,15 @@ bool IsOrMatching(const char *line, int at_place, Expression *expression, int ex
         return first_match || second_match;
     } else {
         return (IsMatchAtPlace(at_place, line, expression, expression_index + 1, exact_match, false, false) ||
-                strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0);
+                ((strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) &&
+                IsMatchAtPlace(
+                        at_place + strlen(alternation->first_option),
+                        line,
+                        expression,
+                        expression_index + 1,
+                        exact_match,
+                        false,
+                        false)));
     }
 }
 
