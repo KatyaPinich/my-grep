@@ -21,12 +21,13 @@ Parameters* ParseParameters(int argc, char *argv[])
     Parameters *parameters;
     int arg_index;
     char option;
-    int option_argument;
+    int option_argument = 0;
 
     parameters = (Parameters*)malloc(sizeof(Parameters));
     if (parameters == NULL)
+    {
         return parameters; // TODO: Maybe exit with a warning memory allocation failed
-
+    }
     InitializeParametersStruct(parameters);
 
     arg_index = 1;

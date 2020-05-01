@@ -32,27 +32,18 @@ void Grep(Parameters *parameters)
     FILE* input_stream;
     struct Node *lines = NULL, *line = NULL, *previousLine = NULL;
     int match_count = 0;
-
     input_stream = GetInputStream(parameters);
-    if (input_stream == NULL)
-    {
+    if (input_stream == NULL){
         FreeParameters(parameters);
         exit(EXIT_FAILURE);
     }
-
     FillLinesStruct(parameters, &lines, input_stream);
-
     line = lines;
-    while (line != NULL)
-    {
-        if (ReportLine(line, parameters->invert_match))
-        {
-            if (!parameters->print_line_count)
-            {
-                if (match_count > 0 && parameters->lines_after_context > 0)
-                {
-                    if (!previousLine->reported)
-                    {
+    while (line != NULL){
+        if (ReportLine(line, parameters->invert_match)){
+            if (!parameters->print_line_count){
+                if (match_count > 0 && parameters->lines_after_context > 0){
+                    if (!previousLine->reported){
                         printf("--\n");
                     }
                 }
@@ -63,15 +54,12 @@ void Grep(Parameters *parameters)
         previousLine = line;
         line = line->next;
     }
-
-    if (parameters->print_line_count)
-    {
+    if (parameters->print_line_count){
         printf("%d\n", match_count);
     }
-
-    if (parameters->input_mode == INPUT_FILE)
+    if (parameters->input_mode == INPUT_FILE) {
         fclose(input_stream);
-
+    }
     FreeLinkedList(&lines);
 }
 

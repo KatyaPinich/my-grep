@@ -14,7 +14,9 @@ int AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int
 
     struct Node* new_node = CreateNode(new_line, valid, byteOffset, lineNumber, aParameterMatch);
     if (new_node == NULL)
+    {
         return 1;
+    }
     if (*head_ref == NULL)
     {
         *head_ref = new_node;
@@ -24,8 +26,9 @@ int AddToEndOfLinkedList(struct Node** head_ref, char *new_line, bool valid, int
         current = *head_ref;
 
         while (current->next != NULL)
+        {
             current = current->next;
-
+        }
         current->next = new_node;
     }
     return 0;
@@ -36,8 +39,9 @@ int Pop(struct Node** head_ref)
     struct Node * next_node = NULL;
 
     if (*head_ref == NULL)
+    {
         return FAILED_CODE;
-
+    }
     free((*head_ref)->line);
 
     next_node = (*head_ref)->next;
@@ -51,7 +55,9 @@ void FreeLinkedList(struct Node** head_ref)
 {
     int return_code = SUCCESS_CODE;
     while (return_code != FAILED_CODE)
+    {
         return_code = Pop(head_ref);
+    }
 }
 
 struct Node* CreateNode(char *line, bool valid, int byteOffset, int lineNumber, bool aParameterMatch)
