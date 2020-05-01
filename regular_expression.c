@@ -19,6 +19,7 @@ bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expressio
                            bool exact_match, bool firstTermMatch, bool secondTermMatch);
 ExpressionElement* CreateCharElement(char value);
 ExpressionElement* CreateWildcardElement();
+ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index);
 int IndexOfChar(const char *str, char value, int start_index);
 
 Expression *ParseExpression(const char *expression_string)
@@ -31,6 +32,7 @@ Expression *ParseExpression(const char *expression_string)
   int element_count = 0, firstOrTermLength, secondOrTermLength;
   bool backslash = false;
   char *firstOrTerm, *secondOrTerm, lowRangeChar, highRangeChar;
+  int closing_index;
 
   expression_length = strlen(expression_string);
 
@@ -49,7 +51,9 @@ Expression *ParseExpression(const char *expression_string)
               elements[element_count] = CreateWildcardElement();
               break;
           case '[':
-              // TODO: Handle brackets
+              closing_index = IndexOfChar(expression_string, ']', i);
+              elements[element_count] = CreateRangeElement(expression_string, i);
+              i = closing_index;
               break;
           case '(':
               // TODO: Handle braces
@@ -138,6 +142,21 @@ ExpressionElement* CreateWildcardElement()
     return CreateExpressionElement(
             REGEX_WILDCARD, '.',
             ' ',
+            false,
+            false);
+}
+
+ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index)
+{
+    char range_start;
+    char range_end;
+
+    range_start = expression_string[open_bracket_index + 1];
+    range_end = expression_string[open_bracket_index + 2];
+    return CreateExpressionElement(
+            REGEX_RANGE,
+            range_start,
+            range_end,
             false,
             false);
 }
