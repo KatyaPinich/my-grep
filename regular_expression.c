@@ -17,6 +17,9 @@ int FindOrTerms(char **firstOrTerm, char **secondOrTerm, const char *expression_
 unsigned int MinNum(int a, int b);
 bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
                            bool exact_match, bool firstTermMatch, bool secondTermMatch);
+ExpressionElement* CreateCharElement(char value);
+ExpressionElement* CreateWildcardElement();
+int IndexOfChar(const char *str, char value, int start_index);
 
 Expression *ParseExpression(const char *expression_string)
 {
@@ -35,7 +38,30 @@ Expression *ParseExpression(const char *expression_string)
   if (elements == NULL) {
     return NULL;
   }
+
   while (expression_string[i] != '\0') {
+      switch(expression_string[i]) {
+          case '\\':
+              i++;
+              elements[element_count] = CreateCharElement(expression_string[i]);
+              break;
+          case '.':
+              elements[element_count] = CreateWildcardElement();
+              break;
+          case '[':
+              // TODO: Handle brackets
+              break;
+          case '(':
+              // TODO: Handle braces
+              break;
+          default:
+              elements[element_count] = CreateCharElement(expression_string[i]);
+              break;
+      }
+
+      element_count++;
+      i++;
+
     if (expression_string[i] == '\\') {
       backslash = true;
       i++;
@@ -95,6 +121,38 @@ Expression *ParseExpression(const char *expression_string)
   expression = CreateExpression(elements, element_count);
 
   return expression;
+}
+
+ExpressionElement* CreateCharElement(char value)
+{
+    return CreateExpressionElement(
+            REGEX_CHAR,
+            value,
+            ' ',
+            false,
+            false);
+}
+
+ExpressionElement* CreateWildcardElement()
+{
+    return CreateExpressionElement(
+            REGEX_WILDCARD, '.',
+            ' ',
+            false,
+            false);
+}
+
+int IndexOfChar(const char *str, char value, int start_index)
+{
+    int char_index = -1;
+    const char *result;
+
+    result = strchr(&(str[start_index]), value);
+    if (result != NULL) {
+        char_index = (int)(result - str);
+    }
+
+    return char_index;
 }
 
 unsigned int MinNum(int a, int b)
