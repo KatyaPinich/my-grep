@@ -20,7 +20,9 @@ bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expressio
 ExpressionElement* CreateCharElement(char value);
 ExpressionElement* CreateWildcardElement();
 ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index);
+ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index);
 int IndexOfChar(const char *str, char value, int start_index);
+char* CopySubstring(const char *source, int start_index, int count);
 
 Expression *ParseExpression(const char *expression_string)
 {
@@ -56,69 +58,21 @@ Expression *ParseExpression(const char *expression_string)
               i = closing_index;
               break;
           case '(':
-              // TODO: Handle braces
+              closing_index = IndexOfChar(expression_string, ')', i);
+              elements[element_count] = CreateOrElement(expression_string, i, closing_index);
+              i = closing_index;
               break;
           default:
               elements[element_count] = CreateCharElement(expression_string[i]);
               break;
       }
 
-      element_count++;
-      i++;
-
-    if (expression_string[i] == '\\') {
-      backslash = true;
-      i++;
-    }
-
-    if (expression_string[i] == '(' && !backslash) {
-      i = i + FindOrTerms(&firstOrTerm, &secondOrTerm, expression_string, i);
-      if (firstOrTerm != NULL) {
-        firstOrTermLength = strlen(firstOrTerm);
-      } else {
-        firstOrTermLength = 0;
-      }
-      if (secondOrTerm != NULL) {
-        secondOrTermLength = strlen(secondOrTerm);
-      } else {
-        secondOrTermLength = 0;
-      }
-      for (j = 0; j < MinNum(firstOrTermLength, secondOrTermLength); j++) {
-        elements[element_count] = CreateExpressionElement(REGEX_OR, firstOrTerm[j], secondOrTerm[j], false, false);
-        element_count++;
-      }
-      while (j < firstOrTermLength) {
-        elements[element_count] = CreateExpressionElement(REGEX_OR, firstOrTerm[j], ' ', false, true);
-        element_count++;
-        j++;
-      }
-      while (j < secondOrTermLength) {
-        elements[element_count] = CreateExpressionElement(REGEX_OR, ' ', secondOrTerm[j], true, false);
-        element_count++;
-        j++;
-      }
-      free(firstOrTerm);
-      free(secondOrTerm);
-      elements[element_count - 1]->lastOrType = true;
-      continue;
-    } else if (expression_string[i] == '[' && !backslash) {
-      i++;
-      lowRangeChar = expression_string[i];
-      i = i + 2;
-      highRangeChar = expression_string[i];
-      elements[element_count] = CreateExpressionElement(REGEX_RANGE, lowRangeChar, highRangeChar, false, false);
-      i++;
-    } else if (expression_string[i] == '.' && !backslash) {
-      elements[element_count] = CreateExpressionElement(REGEX_WILDCARD, expression_string[i], ' ', false, false);
-    } else {
-      elements[element_count] = CreateExpressionElement(REGEX_CHAR, expression_string[i], ' ', false, false);
-    }
     if (elements[element_count] == NULL) {
       FreeElements(elements, element_count);
       return NULL;
     }
+    
     element_count++;
-    backslash = false;
     i++;
   }
 
@@ -159,6 +113,69 @@ ExpressionElement* CreateRangeElement(const char *expression_string, int open_br
             range_end,
             false,
             false);
+}
+
+ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index)
+{
+    int or_index;
+    int first_option_length;
+    int second_option_length;
+    char *first_option;
+    char *second_option;
+
+    or_index = IndexOfChar(expression_string, '|', open_brace_index);
+    first_option_length = or_index - open_brace_index;
+    second_option_length = close_brace_index - or_index;
+
+    if (first_option_length > 1 && second_option_length > 1) {
+        first_option = CopySubstring(expression_string, open_brace_index + 1, first_option_length);
+        second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
+        if (first_option == NULL || second_option == NULL) {
+            return NULL;
+        }
+        return CreateExpressionElement(
+                REGEX_OR,
+                first_option,
+                second_option,
+                false,
+                false);
+    } else if (first_option_length > 1) {
+        first_option = CopySubstring(expression_string, open_brace_index + 1, first_option_length);
+        if (first_option == NULL) {
+            return NULL;
+        }
+        return CreateExpressionElement(
+                REGEX_OR,
+                first_option,
+                ' ',
+                false,
+                true);
+    } else {
+        second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
+        if (second_option == NULL) {
+            return NULL;
+        }
+        return CreateExpressionElement(
+                REGEX_OR,
+                ' ',
+                second_option,
+                true,
+                false);
+    }
+}
+
+char* CopySubstring(const char *source, int start_index, int count)
+{
+    int destination_length;
+    char *destination;
+
+    destination_length = count + 1;
+    destination = (char*)malloc(sizeof(char) * destination_length);
+    if (destination != NULL) {
+        strncpy(destination, &(source[start_index]), count);
+    }
+
+    return destination;
 }
 
 int IndexOfChar(const char *str, char value, int start_index)

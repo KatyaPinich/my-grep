@@ -10,6 +10,7 @@ typedef struct ExpressionElement {
   bool emptyFirstTerm;
   bool emptySecondTerm;
   bool lastOrType;
+  bool optional;
 } ExpressionElement;
 
 typedef struct Expression {
