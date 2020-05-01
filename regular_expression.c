@@ -431,17 +431,18 @@ bool IsOrMatching(const char *line, int at_place, Expression *expression, int ex
     bool second_match = false;
 
     alternation = expression->elements[expression_index]->info->alternation;
+    if (strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) {
+        first_match = IsMatchAtPlace(
+                at_place + strlen(alternation->first_option),
+                line,
+                expression,
+                expression_index + 1,
+                exact_match,
+                false,
+                false);
+    }
+
     if (!alternation->optional) {
-        if (strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) {
-            first_match = IsMatchAtPlace(
-                    at_place + strlen(alternation->first_option),
-                    line,
-                    expression,
-                    expression_index + 1,
-                    exact_match,
-                    false,
-                    false);
-        }
         if (strncmp(&(line[at_place]), alternation->second_option, strlen(alternation->second_option)) == 0) {
             second_match = IsMatchAtPlace(
                     at_place + strlen(alternation->second_option),
@@ -451,21 +452,20 @@ bool IsOrMatching(const char *line, int at_place, Expression *expression, int ex
                     exact_match,
                     false,
                     false
-                    );
+            );
         }
-        return first_match || second_match;
     } else {
-        return (IsMatchAtPlace(at_place, line, expression, expression_index + 1, exact_match, false, false) ||
-                ((strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) &&
-                IsMatchAtPlace(
-                        at_place + strlen(alternation->first_option),
-                        line,
-                        expression,
-                        expression_index + 1,
-                        exact_match,
-                        false,
-                        false)));
+        second_match = IsMatchAtPlace(
+                at_place,
+                line,
+                expression,
+                expression_index + 1,
+                exact_match,
+                false,
+                false);
     }
+
+    return first_match || second_match;
 }
 
 bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
