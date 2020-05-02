@@ -246,6 +246,8 @@ void FreeElements(ExpressionElement **elements, int element_count)
     if (elements[i]->type == REGEX_RANGE) {
       free(elements[i]->info->range);
     } else if (elements[i]->type == REGEX_OR) {
+      free(elements[i]->info->alternation->first_option);
+      free(elements[i]->info->alternation->second_option);
       free(elements[i]->info->alternation);
     }
     free(elements[i]->info);
