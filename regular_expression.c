@@ -166,6 +166,7 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
             return NULL;
         }
         element_info->alternation->first_option = first_option;
+        element_info->alternation->second_option = NULL;
         element_info->alternation->optional = true;
     } else {
         second_option = CopySubstring(expression_string, or_index + 1, second_option_length);
@@ -173,6 +174,7 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
             return NULL;
         }
         element_info->alternation->first_option = second_option;
+        element_info->alternation->second_option = NULL;
         element_info->alternation->optional = true;
     }
 
@@ -241,6 +243,11 @@ void FreeElements(ExpressionElement **elements, int element_count)
   int i;
 
   for (i = 0; i < element_count; ++i) {
+    if (elements[i]->type == REGEX_RANGE) {
+      free(elements[i]->info->range);
+    } else if (elements[i]->type == REGEX_OR) {
+      free(elements[i]->info->alternation);
+    }
     free(elements[i]->info);
     free(elements[i]);
   }
@@ -319,21 +326,26 @@ bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expressio
   OrElement *alternation;
   bool first_match = false;
   bool second_match = false;
+  int first_option_length = 0, second_option_length = 0;
 
   alternation = expression->elements[expression_index]->info->alternation;
-  if (strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) {
-    first_match = IsMatchAtPlace(at_place + strlen(alternation->first_option), line, expression, expression_index + 1,
-                                 exact_match);
+  if (alternation->first_option != NULL) {
+    first_option_length = strlen(alternation->first_option);
+  }
+  if (alternation->second_option != NULL) {
+    second_option_length = strlen(alternation->second_option);
+  }
+  if (strncmp(&(line[at_place]), alternation->first_option, first_option_length) == 0) {
+    first_match = IsMatchAtPlace(at_place + first_option_length, line, expression, expression_index + 1, exact_match);
   }
 
   if (!alternation->optional) {
-    if (strncmp(&(line[at_place]), alternation->second_option, strlen(alternation->second_option)) == 0) {
-      second_match = IsMatchAtPlace(at_place + strlen(alternation->second_option), line, expression,
-                                    expression_index + 1,
-                    exact_match);
-        }
-    } else {
-        second_match = IsMatchAtPlace(
+    if (strncmp(&(line[at_place]), alternation->second_option, second_option_length) == 0) {
+      second_match =
+          IsMatchAtPlace(at_place + second_option_length, line, expression, expression_index + 1, exact_match);
+    }
+  } else {
+    second_match = IsMatchAtPlace(
                 at_place,
                 line,
                 expression,
