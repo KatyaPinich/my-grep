@@ -139,12 +139,12 @@ ExpressionElement* CreateOrElement(const char *expression_string, int open_brace
     first_option_length = or_index - open_brace_index - 1;
     second_option_length = close_brace_index - or_index - 1;
 
-    element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
+    element_info = (ElementInfo *)calloc(1, sizeof(ElementInfo));
     if (element_info == NULL) {
         return NULL;
     }
 
-    element_info->alternation = (OrElement*)malloc(sizeof(OrElement));
+    element_info->alternation = (OrElement *)calloc(1, sizeof(OrElement));
     if (element_info->alternation == NULL) {
         return NULL;
     }
@@ -187,7 +187,7 @@ char* CopySubstring(const char *source, int start_index, int count)
     char *destination;
 
     destination_length = count + 1;
-    destination = (char*)malloc(sizeof(char) * destination_length);
+    destination = (char *)calloc(destination_length, sizeof(char));
     if (destination != NULL) {
         strncpy(destination, &(source[start_index]), count);
     }
