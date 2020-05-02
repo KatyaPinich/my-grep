@@ -16,6 +16,7 @@ void FillLinesStruct(Parameters *parameters, struct Node **lines, FILE *input_st
 void PrintLineMatch(struct Node *line, Parameters *parameters, char separator);
 bool ReportLine(Node *line, bool invert_match);
 void PrintLinesAfterContextSeparator(int match_count, int lines_after_context, struct Node *previousLine);
+void ReportLineAfterContext(Node *line_after_context, Parameters *parameters);
 
 int main(int argc, char *argv[])
 {
@@ -137,19 +138,24 @@ void ReportLineMatch(struct Node *line, Parameters *parameters)
     reported_after_context = parameters->lines_after_context;
     while (reported_after_context > 0 && line_after_context->next != NULL) {
       if (!line_after_context->reported) {
-        if (ReportLine(line_after_context, parameters->invert_match)) {
-          PrintLineMatch(line_after_context, parameters, ':');
-        } else {
-          PrintLineMatch(line_after_context, parameters, '-');
-        }
-
-        line_after_context->reported = true;
+        ReportLineAfterContext(line_after_context, parameters);
       }
 
       line_after_context = line_after_context->next;
       reported_after_context--;
     }
   }
+}
+
+void ReportLineAfterContext(Node *line_after_context, Parameters *parameters)
+{
+  if (ReportLine(line_after_context, parameters->invert_match)) {
+    PrintLineMatch(line_after_context, parameters, ':');
+  } else {
+    PrintLineMatch(line_after_context, parameters, '-');
+  }
+
+  line_after_context->reported = true;
 }
 
 bool ReportLine(Node *line, bool invert_match)

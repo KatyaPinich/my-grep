@@ -31,7 +31,6 @@ Expression *ParseExpression(const char *expression_string)
   int closing_index;
 
   expression_length = strlen(expression_string);
-
   elements = malloc(sizeof(*elements) * expression_length);
   if (elements == NULL) {
     return NULL;
@@ -69,7 +68,6 @@ Expression *ParseExpression(const char *expression_string)
     element_count++;
     i++;
   }
-
   expression = CreateExpression(elements, element_count);
 
   return expression;
@@ -138,12 +136,10 @@ ExpressionElement *CreateOrElement(const char *expression_string, int open_brace
   or_index = IndexOfChar(expression_string, '|', open_brace_index);
   first_option_length = or_index - open_brace_index - 1;
   second_option_length = close_brace_index - or_index - 1;
-
   element_info = (ElementInfo *)calloc(1, sizeof(ElementInfo));
   if (element_info == NULL) {
     return NULL;
   }
-
   element_info->alternation = (OrElement *)calloc(1, sizeof(OrElement));
   if (element_info->alternation == NULL) {
     return NULL;
