@@ -1,6 +1,8 @@
 #ifndef REGULAR_EXPRESSION_H
 #define REGULAR_EXPRESSION_H
 
+#include <stdbool.h>
+
 typedef enum RegexType { REGEX_WILDCARD, REGEX_OR, REGEX_RANGE, REGEX_CHAR } RegexType;
 
 typedef struct RangeElement {
@@ -31,7 +33,6 @@ typedef struct Expression {
 } Expression;
 
 Expression *ParseExpression(const char *expression_string);
-bool IsMatchInLine(const char *line, Expression *expression, bool exact_match);
 void FreeExpression(Expression *expression);
 
 #endif

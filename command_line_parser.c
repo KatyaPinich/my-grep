@@ -1,10 +1,9 @@
-#include "command_line_parser.h"
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "command_line_parser.h"
 #include "string_tools.h"
 
 #define USAGE_MESSAGE "usage: my-grep [-bcinvx] [-A num] [-E pattern] [pattern] [file]"

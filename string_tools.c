@@ -1,8 +1,8 @@
-#include "string_tools.h"
-
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "string_tools.h"
 
 char *CopyString(const char *source_string)
 {
@@ -34,4 +34,31 @@ char *ToLowercaseString(const char *source_string)
   }
 
   return destination_string;
+}
+
+char *CopySubstring(const char *source, int start_index, int count)
+{
+  int destination_length;
+  char *destination;
+
+  destination_length = count + 1;
+  destination = (char *)calloc(destination_length, sizeof(char));
+  if (destination != NULL) {
+    strncpy(destination, &(source[start_index]), count);
+  }
+
+  return destination;
+}
+
+int IndexOfChar(const char *str, char value, int start_index)
+{
+  int char_index = -1;
+  const char *result;
+
+  result = strchr(&(str[start_index]), value);
+  if (result != NULL) {
+    char_index = (int)(result - str);
+  }
+
+  return char_index;
 }
