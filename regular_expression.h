@@ -4,25 +4,25 @@
 typedef enum RegexType { REGEX_WILDCARD, REGEX_OR, REGEX_RANGE, REGEX_CHAR } RegexType;
 
 typedef struct RangeElement {
-    char start;
-    char end;
+  char start;
+  char end;
 } RangeElement;
 
 typedef struct OrElement {
-    char *first_option;
-    char *second_option;
-    bool optional;
+  char *first_option;
+  char *second_option;
+  bool optional;
 } OrElement;
 
 typedef union ElementInfo {
-    char value;
-    RangeElement *range;
-    OrElement *alternation;
+  char value;
+  RangeElement *range;
+  OrElement *alternation;
 } ElementInfo;
 
 typedef struct ExpressionElement {
   RegexType type;
-  ElementInfo* info;
+  ElementInfo *info;
 } ExpressionElement;
 
 typedef struct Expression {
