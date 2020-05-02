@@ -5,21 +5,21 @@
 #include "regular_expression.h"
 #include "string_tools.h"
 
+#define RANGE_START_OFFSET 1
+#define RANGE_END_OFFSET 3
+
 Expression *CreateExpression(ExpressionElement **elements, int element_count);
 ExpressionElement *CreateExpressionElement(RegexType element_type, ElementInfo *element_info);
 void FreeElements(ExpressionElement **elements, int element_count);
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match);
-int FindOrTerm(char **str, int index, const char *expression_string, char stopChar);
-int FindOrTerms(char **firstOrTerm, char **secondOrTerm, const char *expression_string, int index);
-unsigned int MinNum(int a, int b);
-bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match);
-ExpressionElement* CreateCharElement(char value);
-ExpressionElement* CreateWildcardElement();
-ExpressionElement* CreateRangeElement(const char *expression_string, int open_bracket_index);
-ExpressionElement* CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index);
+bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
+                           bool exact_match);
+ExpressionElement *CreateCharElement(char value);
+ExpressionElement *CreateWildcardElement();
+ExpressionElement *CreateRangeElement(const char *expression_string, int open_bracket_index);
+ExpressionElement *CreateOrElement(const char *expression_string, int open_brace_index, int close_brace_index);
 int IndexOfChar(const char *str, char value, int start_index);
-char* CopySubstring(const char *source, int start_index, int count);
-
+char *CopySubstring(const char *source, int start_index, int count);
 
 Expression *ParseExpression(const char *expression_string)
 {
@@ -27,15 +27,11 @@ Expression *ParseExpression(const char *expression_string)
   ExpressionElement **elements;
   int expression_length;
   int i = 0;
-  unsigned int j;
-  int element_count = 0, firstOrTermLength, secondOrTermLength;
-  bool backslash = false;
-  char *firstOrTerm, *secondOrTerm, lowRangeChar, highRangeChar;
+  int element_count = 0;
   int closing_index;
 
   expression_length = strlen(expression_string);
 
-  //elements = calloc(expression_length, sizeof(*elements));
   elements = malloc(sizeof(*elements) * expression_length);
   if (elements == NULL) {
     return NULL;
@@ -111,18 +107,18 @@ ExpressionElement* CreateRangeElement(const char *expression_string, int open_br
     char range_start;
     char range_end;
 
-    element_info = (ElementInfo*)malloc(sizeof(ElementInfo));
+    element_info = (ElementInfo *)malloc(sizeof(ElementInfo));
     if (element_info == NULL) {
-        return NULL;
+      return NULL;
     }
 
-    element_info->range = (RangeElement*)malloc(sizeof(RangeElement));
+    element_info->range = (RangeElement *)malloc(sizeof(RangeElement));
     if (element_info->range == NULL) {
-        return NULL;
+      return NULL;
     }
 
-    range_start = expression_string[open_bracket_index + 1];
-    range_end = expression_string[open_bracket_index + 3];
+    range_start = expression_string[open_bracket_index + RANGE_START_OFFSET];
+    range_end = expression_string[open_bracket_index + RANGE_END_OFFSET];
 
     element_info->range->start = range_start;
     element_info->range->end = range_end;
@@ -210,45 +206,6 @@ int IndexOfChar(const char *str, char value, int start_index)
     return char_index;
 }
 
-unsigned int MinNum(int a, int b)
-{
-  if (a > b)
-    return b;
-  else
-    return a;
-}
-
-int FindOrTerms(char **firstOrTerm, char **secondOrTerm, const char *expression_string, int index)
-{
-  int firstTermLength;
-  firstTermLength = FindOrTerm(firstOrTerm, index, expression_string, '|');
-  index = index + firstTermLength;
-  return 1 + firstTermLength + FindOrTerm(secondOrTerm, index, expression_string, ')');
-}
-
-int FindOrTerm(char **str, int index, const char *expression_string, char stopChar)
-{
-  int firstCharIndex, count = 0;
-  index++;
-  firstCharIndex = index;
-  while (expression_string[index] != stopChar) {
-    if (expression_string[index] == '\\') {
-      index++;
-      continue;
-    }
-    index++;
-    count++;
-  }
-  if (count == 0) {
-    *str = NULL;
-  } else {
-    *str = (char *)malloc((count + 1) * sizeof(char));
-    RoundBracketTermCopy(str, &expression_string[firstCharIndex], count);
-    (*str)[count] = '\0';
-  }
-  return count + 1;
-}
-
 ExpressionElement *CreateExpressionElement(RegexType element_type, ElementInfo *element_info)
 {
   ExpressionElement *new_element = (ExpressionElement *)malloc(sizeof(ExpressionElement));
@@ -284,6 +241,7 @@ void FreeElements(ExpressionElement **elements, int element_count)
   int i;
 
   for (i = 0; i < element_count; ++i) {
+    free(elements[i]->info);
     free(elements[i]);
   }
 }
@@ -346,38 +304,32 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
           }
           break;
       case REGEX_OR:
-          return IsRegexOrMatchAtPlace(line, at_place, expression, expression_index, exact_match);
+        return IsRegexOrMatchAtPlace(line, at_place, expression, expression_index, exact_match);
       case REGEX_WILDCARD:
       default:
-          break;
+        break;
   }
 
   return IsMatchAtPlace(at_place + 1, line, expression, expression_index + 1, exact_match);
 }
 
-bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index, bool exact_match)
+bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
+                           bool exact_match)
 {
-    OrElement *alternation;
-    bool first_match = false;
-    bool second_match = false;
+  OrElement *alternation;
+  bool first_match = false;
+  bool second_match = false;
 
-    alternation = expression->elements[expression_index]->info->alternation;
-    if (strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) {
-        first_match = IsMatchAtPlace(
-                at_place + strlen(alternation->first_option),
-                line,
-                expression,
-                expression_index + 1,
-                exact_match);
-    }
+  alternation = expression->elements[expression_index]->info->alternation;
+  if (strncmp(&(line[at_place]), alternation->first_option, strlen(alternation->first_option)) == 0) {
+    first_match = IsMatchAtPlace(at_place + strlen(alternation->first_option), line, expression, expression_index + 1,
+                                 exact_match);
+  }
 
-    if (!alternation->optional) {
-        if (strncmp(&(line[at_place]), alternation->second_option, strlen(alternation->second_option)) == 0) {
-            second_match = IsMatchAtPlace(
-                    at_place + strlen(alternation->second_option),
-                    line,
-                    expression,
-                    expression_index + 1,
+  if (!alternation->optional) {
+    if (strncmp(&(line[at_place]), alternation->second_option, strlen(alternation->second_option)) == 0) {
+      second_match = IsMatchAtPlace(at_place + strlen(alternation->second_option), line, expression,
+                                    expression_index + 1,
                     exact_match);
         }
     } else {

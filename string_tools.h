@@ -3,6 +3,5 @@
 
 char *CopyString(const char *source_string);
 char *ToLowercaseString(const char *source_string);
-void RoundBracketTermCopy(char **destinationString, const char *sourceString, int count);
 
 #endif
