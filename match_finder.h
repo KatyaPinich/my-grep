@@ -1,8 +1,12 @@
 #ifndef MY_GREP_MATCH_FINDER_H
 #define MY_GREP_MATCH_FINDER_H
 
-#include "regular_expression.h"
+#include <stdio.h>
 
-bool IsMatchInLine(const char *line, Expression *expression, bool exact_match);
+#include "regular_expression.h"
+#include "command_line_parser.h"
+#include "linked_list.h"
+
+void MatchLines(Parameters *parameters, struct Node **lines, FILE *input_stream);
 
 #endif  // MY_GREP_MATCH_FINDER_H
