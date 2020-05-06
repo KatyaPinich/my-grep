@@ -17,7 +17,7 @@ bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expressio
 void MatchLines(Parameters *parameters, struct Node **lines, FILE *input_stream)
 {
   int bytes_read = 0, line_number = 1;
-  bool has_match, aParameterMatch = false;
+  bool has_match;
   char *line, *lineToMatch, *tempExpression;
   Expression *expression;
 
@@ -53,7 +53,7 @@ void MatchLines(Parameters *parameters, struct Node **lines, FILE *input_stream)
     if (parameters->ignore_case) {
       free(lineToMatch);
     }
-    if (AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number, aParameterMatch) == 1) {
+    if (AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number) == 1) {
       FreeParameters(parameters);
       exit(EXIT_FAILURE);
     }
