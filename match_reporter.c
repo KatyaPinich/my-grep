@@ -1,10 +1,38 @@
 #include <stdio.h>
-#include <stdlib.h>
 
+#include "command_line_parser.h"
+#include "linked_list.h"
 #include "match_reporter.h"
 
+bool ReportLine(Node *line, bool invert_match);
+void PrintLinesAfterContextSeparator(int match_count, int lines_after_context, struct Node *previousLine);
+void ReportLineMatch(struct Node *line, Parameters *parameters);
 void ReportLineAfterContext(Node *line_after_context, Parameters *parameters);
 void PrintLineMatch(struct Node *line, Parameters *parameters, char separator);
+
+void ReportLines(Node *lines_list, Parameters *parameters)
+{
+  Node *current_line;
+  Node *previous_line;
+  int match_count = 0;
+
+  current_line = lines_list;
+  while (current_line != NULL) {
+    if (ReportLine(current_line, parameters->invert_match)) {
+      if (!parameters->print_line_count) {
+        PrintLinesAfterContextSeparator(match_count, parameters->lines_after_context, previous_line);
+        ReportLineMatch(current_line, parameters);
+      }
+      match_count++;
+    }
+    previous_line = current_line;
+    current_line = current_line->next;
+  }
+
+  if (parameters->print_line_count) {
+    printf("%d\n", match_count);
+  }
+}
 
 void PrintLinesAfterContextSeparator(int match_count, int lines_after_context, struct Node *previousLine)
 {

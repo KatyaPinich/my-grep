@@ -1,11 +1,68 @@
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include "command_line_parser.h"
+#include "linked_list.h"
 #include "match_finder.h"
+#include "stream_handler.h"
+#include "string_tools.h"
 
+bool IsMatchInLine(const char *line, Expression *expression, bool exact_match);
 bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int expression_index, bool exact_match);
 bool IsRegexOrMatchAtPlace(const char *line, int at_place, Expression *expression, int expression_index,
                            bool exact_match);
+
+void MatchLines(Parameters *parameters, struct Node **lines, FILE *input_stream)
+{
+  int bytes_read = 0, line_number = 1;
+  bool has_match;
+  char *line, *lineToMatch, *tempExpression;
+  Expression *expression;
+
+  if (parameters->ignore_case) {
+    tempExpression = parameters->expression;
+    parameters->expression = ToLowercaseString(parameters->expression);
+    free(tempExpression);
+    if (parameters->expression == NULL) {
+      FreeParameters(parameters);
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  expression = ParseExpression(parameters->expression);
+  if (expression == NULL) {
+    FreeParameters(parameters);
+    exit(EXIT_FAILURE);
+  }
+
+  line = ReadLine(input_stream);
+  while (line != NULL) {
+    if (parameters->ignore_case) {
+      lineToMatch = ToLowercaseString(line);
+      if (lineToMatch == NULL) {
+        FreeParameters(parameters);
+        exit(EXIT_FAILURE);
+      }
+    } else {
+      lineToMatch = line;
+    }
+
+    has_match = IsMatchInLine(lineToMatch, expression, parameters->exact_match);
+    if (parameters->ignore_case) {
+      free(lineToMatch);
+    }
+    if (AddToEndOfLinkedList(lines, line, has_match, bytes_read, line_number) == 1) {
+      FreeParameters(parameters);
+      exit(EXIT_FAILURE);
+    }
+    bytes_read += strlen(line);
+    line = ReadLine(input_stream);
+    line_number++;
+  }
+  FreeExpression(expression);
+}
 
 bool IsMatchInLine(const char *line, Expression *expression, bool exact_match)
 {

@@ -8,13 +8,11 @@ typedef struct Node {
   bool is_match;
   int match_offset;
   int line_number;
-  bool aParameterMatch;
   bool reported;
   struct Node *next;
 } Node;
 
-int AddToEndOfLinkedList(struct Node **head_ref, char *new_line, bool valid, int byteOffset, int lineNumber,
-                         bool aParameterMatch);
+int AddToEndOfLinkedList(struct Node **head_ref, char *new_line, bool is_match, int byte_offset, int line_number);
 void FreeLinkedList(struct Node **head_ref);
 
 #endif

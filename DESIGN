@@ -1,0 +1,15 @@
+main: includes main function and the main grep functions called Grep.
+
+command_line_parser: command line parser, fills the Parameters struct from the cmd input.
+
+linked_list: linked list to store the input stream lines and their parameters.
+
+match_finder: finds lines that match and need to be reported.
+
+match_reporter: reports the matching lines according to passed parameters.
+
+regular_expression: identifies the parts of the regular expression.
+
+stream_handler: handles basic stream operations.
+
+string_tools: tools created to deal with common string operations needed by other modules.
