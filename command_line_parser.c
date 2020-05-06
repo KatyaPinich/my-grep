@@ -24,7 +24,7 @@ Parameters *ParseParameters(int argc, char *argv[])
 
   parameters = (Parameters *)malloc(sizeof(Parameters));
   if (parameters == NULL) {
-    return parameters;  // TODO: Maybe exit with a warning memory allocation failed
+    return parameters;
   }
   InitializeParametersStruct(parameters);
 
@@ -84,7 +84,7 @@ bool ParseOption(Parameters *parameters, char option, int option_argument, char 
 
   switch (option) {
     case 'A':
-      parameters->lines_after_context = atoi(argv[option_argument]);  // TODO: Check parsing
+      parameters->lines_after_context = atoi(argv[option_argument]);
       break;
     case 'b':
       parameters->byte_offset = true;

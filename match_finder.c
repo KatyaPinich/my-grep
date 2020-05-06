@@ -89,21 +89,17 @@ bool IsMatchAtPlace(int at_place, const char *line, Expression *expression, int 
   RegexType element_type;
   ElementInfo *element_info;
 
-  // We reached the end of the expression
   if (expression_index >= expression->element_count) {
     if (exact_match) {
-      // We have an exact match only if we reached the end of the line
       return (line[at_place] == '\n' || line[at_place] == '\0');
     } else {
-      // We reached the end of the expression and we are not looking for an exact match
-      // return true
       return true;
     }
   }
 
   // If we reached the end of the line, but not the end of the expression return false
   if (line[at_place] == '\n' || line[at_place] == '\0') {
-    return false;  // expression_index == expression->element_count;
+    return false;
   }
 
   element_type = expression->elements[expression_index]->type;
