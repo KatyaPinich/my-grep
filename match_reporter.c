@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "match_reporter.h"
+#include "command_line_parser.h"
+#include "linked_list.h"
 
 bool ReportLine(Node *line, bool invert_match);
 void PrintLinesAfterContextSeparator(int match_count, int lines_after_context, struct Node *previousLine);
