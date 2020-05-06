@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 
-#include "regular_expression.h"
 #include "command_line_parser.h"
 #include "linked_list.h"
+#include "regular_expression.h"
 
 void MatchLines(Parameters *parameters, struct Node **lines, FILE *input_stream);
 

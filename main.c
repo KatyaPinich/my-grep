@@ -30,7 +30,7 @@ void Grep(Parameters *parameters)
     FreeParameters(parameters);
     exit(EXIT_FAILURE);
   }
-    MatchLines(parameters, &lines_list, input_stream);
+  MatchLines(parameters, &lines_list, input_stream);
   line = lines_list;
   while (line != NULL) {
     if (ReportLine(line, parameters->invert_match)) {
